@@ -1,0 +1,14 @@
+# NPM modules
+node_modules
+
+# Generated static content
+/dist
+
+# Sublime Text project files
+*.sublime-project
+*.sublime-workspace
+
+# SSL keys/certs
+/*.crt
+/*.csr
+/*.key
