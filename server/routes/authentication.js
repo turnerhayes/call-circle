@@ -1,0 +1,24 @@
+const express = require('express');
+const passport = require('passport');
+const Config = require('../../lib/config');
+
+const router = express.Router();
+
+router.route('/auth/fb')
+	.get(
+		passport.authenticate('facebook', { "scope": Config.auth.facebook.scope || [] })
+	);
+
+router.route(Config.auth.facebook.callbackURL)
+	.get(
+		passport.authenticate(
+			'facebook',
+			{
+				successRedirect: '/',
+				failureRedirect: '/',
+				failureFlash: true,
+			}
+		)
+	);
+
+module.exports = router;

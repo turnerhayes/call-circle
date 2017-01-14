@@ -1,0 +1,94 @@
+@import "~font-awesome/less/font-awesome.less";
+
+.home-page {
+	width: 100%;
+	height: 100%;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	.user-info-container {
+		position: relative;
+	}
+
+	.position- {
+		&west {
+			top: 1.6em;
+			left: -2em;
+		}
+
+		&northwest {
+			top: -1em;
+			left: -1em;
+		}
+
+		&north {
+			top: -2em;
+			left: 2em;
+		}
+
+		&northeast {
+			top: -1em;
+			right: -1em;
+		}
+
+		&east {
+			top: 1.6em;
+			right: -2em;
+		}
+
+		&southeast {
+			bottom: -1em;
+			right: -1em;
+		}
+
+		&south {
+			bottom: -2em;
+			left: 2em;
+		}
+
+		&southwest {
+			bottom: -1em;
+			left: -1em;
+		}
+	}
+
+	.user-action-link {
+		position: absolute;
+
+		&,
+		&:hover,
+		&:link,
+		&:active {
+			text-decoration: none;
+			color: #FFFFFF;
+		}
+	}
+
+	.user-image-container {
+		position: relative;
+
+		&:hover:before {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate3d(-50%, -50%, 0);
+			color: #FFFFFF;
+			font-family: FontAwesome;
+			content: @fa-var-sign-out;
+			font-size: 5em;
+			pointer-events: none;
+		}
+	}
+
+	.user-image {
+		border-radius: 100%;
+		cursor: pointer;
+
+		&.empty {
+			color: #FFFFFF;
+			font-size: 15em;
+		}
+	}
+}
