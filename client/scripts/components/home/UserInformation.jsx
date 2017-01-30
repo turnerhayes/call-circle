@@ -1,10 +1,10 @@
 import React from "react";
-import { Link, browserHistory, withRouter } from "react-router";
+import { Link, withRouter } from "react-router";
 
 class UserInformation extends React.Component {
 	confirmLogout() {
 		if (window.confirm('Are you sure you want to log out?')) {
-			this.props.router.push("/logout");
+			document.location.href = "/logout";
 		}
 	}
 
@@ -23,7 +23,7 @@ class UserInformation extends React.Component {
 				></Link>
 				<Link
 					to="/issues"
-					className="user-action-link issues position-east fa fa-exclamation-triangle fa-3x"
+					className="user-action-link issues position-east fa fa-calendar fa-3x"
 					aria-label="Issues"
 					title="Issues"
 				></Link>
@@ -34,12 +34,12 @@ class UserInformation extends React.Component {
 					title="Issues"
 				></Link>
 				{
-					this.props.user.profile_photo_url ?
+					this.props.user.profilePhotoURL ?
 					(
 						<div className="user-image-container">
 							<img
 								className="user-image"
-								src={this.props.user.profile_photo_url}
+								src={this.props.user.profilePhotoURL}
 								onClick={() => this.handleClickUserImage()}
 							/>
 						</div>

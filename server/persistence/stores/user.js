@@ -1,8 +1,7 @@
 "use strict";
 
 const Sequelize = require('sequelize');
-const UserModel = require('../models/user');
-const Config    = require('../../../lib/config');
+const UserModel = require('../models').User;
 
 class UserStore {
 	static findByID(id) {
@@ -21,7 +20,7 @@ class UserStore {
 		return UserModel.findOne({
 			where: {
 				provider: provider,
-				provider_id: providerID
+				providerID: providerID
 			}
 		});
 	}
@@ -32,12 +31,12 @@ class UserStore {
 		return UserModel.create({
 			username: options.username,
 			email: options.email,
-			first_name: options.name.first,
-			middle_name: options.name.middle,
-			last_name: options.name.last,
-			display_name: options.name.display,
+			firstName: options.name.first,
+			middleName: options.name.middle,
+			lastName: options.name.last,
+			displayName: options.name.display,
 			provider: options.provider,
-			provider_id: options.provider_id
+			providerID: options.providerID
 		});
 	}
 }

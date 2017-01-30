@@ -28,34 +28,34 @@ module.exports = exports = DB.define('user',
 			type: Sequelize.STRING,
 
 		},
-		provider_id: {
+		providerID: {
 			field: 'provider_id',
 			type: Sequelize.STRING,
 			unique: true
 		},
-		first_name: {
+		firstName: {
 			field: 'first_name',
 			type: Sequelize.STRING
 		},
-		middle_name: {
+		middleName: {
 			field: 'middle_name',
 			type: Sequelize.STRING,
 		},
-		last_name: {
+		lastName: {
 			field: 'last_name',
 			type: Sequelize.STRING
 		},
-		display_name: {
+		displayName: {
 			field: 'display_name',
 			type: Sequelize.STRING
 		},
-		profile_photo_url: {
+		profilePhotoURL: {
 			field: 'profile_photo_url',
 			type: Sequelize.STRING,
 			default: null,
 			get: function() {
 				if (this.provider === 'facebook') {
-					return "https://graph.facebook.com/" + this.provider_id +"/picture?type=large";
+					return "https://graph.facebook.com/" + this.providerID +"/picture?type=large";
 				}
 				else {
 					return this.getDataValue('profile_photo_url');
@@ -64,16 +64,12 @@ module.exports = exports = DB.define('user',
 		}
 	},
 	{
-		timeStamps: true,
-		paranoid: true,
 		indexes: [
 			{
-				name: 'IX_users_username',
 				unique: true,
 				fields: ['username']
 			},
 			{
-				name: 'IX_users_email',
 				unique: true,
 				fields: ['email']
 			}

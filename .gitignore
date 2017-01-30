@@ -12,3 +12,6 @@ node_modules
 /*.crt
 /*.csr
 /*.key
+
+# Store cache
+server/persistence/stores/cache/*

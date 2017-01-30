@@ -1,0 +1,38 @@
+.issue-details-container {
+	padding: 1em;
+	
+	&.loading-error {
+		font-size: 3em;
+
+		.error-icon {
+			color: #FF0000;
+		}
+	}
+
+	.issue-header {
+		position: relative;
+	}
+
+	.issue-title {
+		text-align: center;
+	}
+
+	.edit-issue-link {
+		position: absolute;
+		top: 0;
+		right: 0;
+
+		&,
+		&:hover,
+		&:link,
+		&:active,
+		&:visited {
+			text-decoration: none;
+			color: #FFFFFF;
+		}
+
+		&:hover {
+			font-weight: bold;
+		}
+	}
+}
