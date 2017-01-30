@@ -1,21 +1,22 @@
 import React from "react";
-import TopNavigation from "./TopNavigation";
+import { Link, withRouter } from "react-router";
+import Breadcrumbs from "react-breadcrumbs";
 import "bootstrap/dist/js/bootstrap.js";
-
+import "breadcrumbs.less";
 import "page-layout.less";
 
 class App extends React.Component {
 	render() {
 		return (
 			<section className="page-layout__main-container">
-				{/*<header className="page-layout__main-header">
-					{
-						this.props.noTopNav ?
-						'' :
-						<TopNavigation />
-					}
-					<h1>{this.props.pageHeader}</h1>
-				</header>*/}
+				<header>
+					<Breadcrumbs
+						routes={this.props.routes}
+						params={this.props.params}
+						separator=" / "
+						setDocumentTitle={true}
+					/>
+				</header>
 				<article className="page-layout__main-content">
 					{this.props.children}
 				</article>
@@ -24,4 +25,4 @@ class App extends React.Component {
 	}
 }
 
-export default App;
+export default withRouter(App);

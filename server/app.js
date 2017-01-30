@@ -66,8 +66,9 @@ app.use(session({
 
 passportMiddleware(app);
 
-// app.use('/', require('./routes/authentication'));
+app.use('/', require('./routes/authentication'));
 // app.use('/', require('./routes/pages'));
+app.use('/api', require('./routes/api'));
 
 app.use(
 	'/static/fonts/font-awesome',
@@ -87,18 +88,24 @@ if (Config.app.isDevelopment) {
 	const webpackConfig = require('../webpack.config.js');
 	const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
 
-	_.each(
-		webpackConfig.entry,
-		(entry, key) => {
-			if (_.isString(entry)) {
-				webpackConfig.entry[key] = entry = [entry];
-			}
+	// _.each(
+	// 	webpackConfig.entry,
+	// 	(entry, key) => {
+	// 		if (_.isString(entry)) {
+	// 			webpackConfig.entry[key] = entry = [entry];
+	// 		}
 
-			entry.push(hotMiddlewareScript);
+	// 		entry.push(hotMiddlewareScript);
 
-			entry.unshift('react-hot-loader/patch');
-		}
-	);
+	// 		entry.unshift('react-hot-loader/patch');
+	// 	}
+	// );
+
+	webpackConfig.entry = [
+		'react-hot-loader/patch',
+		hotMiddlewareScript,
+		webpackConfig.entry
+	];
 
 	webpackConfig.plugins.push(
 		// Webpack 1.0
@@ -128,11 +135,16 @@ else {
 
 app.get(
 	'*',
-	function(req, res) {
-		res.render('page', {
-			title: 'Call Circle',
-			req: req
-		});
+	function(req, res, next) {
+		if (req.accepts(['html', 'json']) === 'html') {
+			res.render('page', {
+				title: 'Call Circle',
+				req: req
+			});
+		}
+		else {
+			next();
+		}
 	}
 );
 
@@ -147,9 +159,20 @@ app.use(function(req, res, next) {
 
 app.use(function(err, req, res, next) {
 	res.status(err.status || 500);
-	res.render('error', {
+
+	const errData = {
 		message: err.message,
-		error: Config.app.isDevelopment ? err : {}
+		error: Config.app.isDevelopment ?
+			{
+				message: err.message,
+				stack: err.stack
+			} :
+			{}
+	};
+
+	res.format({
+		'json': () => res.json(errData),
+		'default': () => res.render('error', errData)
 	});
 });
 

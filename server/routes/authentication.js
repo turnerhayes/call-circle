@@ -21,4 +21,12 @@ router.route(Config.auth.facebook.callbackURL)
 		)
 	);
 
+router.route('/logout')
+	.get(
+		(req, res) => {
+			req.logout();
+			res.redirect('/');
+		}
+	)
+
 module.exports = router;

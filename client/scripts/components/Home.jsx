@@ -1,6 +1,7 @@
 import React from "react";
 import UserUtils from "../utils/user";
 import UserInformation from "./home/UserInformation"
+import Login from "./Login";
 import "home.less";
 
 class Home extends React.Component {
@@ -14,8 +15,7 @@ class Home extends React.Component {
 								user={UserUtils.currentUser}
 							/>
 						) :
-						<div className="login-container">
-						</div>
+						<Login />
 				}
 			</div>
 		);

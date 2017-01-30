@@ -1,0 +1,27 @@
+.issue-scope-picker {
+	display: inline-block;
+	border: 1px solid black;
+	border-radius: 8px;
+	padding: 1em;
+
+	.state,
+	.district {
+		cursor: pointer;
+	}
+
+	.state {
+		&.placeholder {
+			color: #9197a3;
+		}
+	}
+
+	.district {
+		&.hidden {
+			display: none;
+		}
+
+		&.placeholder {
+			color: #9197a3;
+		}
+	}
+}

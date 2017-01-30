@@ -123,7 +123,8 @@ module.exports = {
 		Buffer: true,
 		fs: 'empty',
 		assert: true,
-		events: true
+		events: true,
+		process: true
 	},
 
 	devtool: "source-map"
