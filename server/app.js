@@ -66,13 +66,12 @@ app.use(session({
 
 passportMiddleware(app);
 
-app.use('/', require('./routes/authentication'));
-// app.use('/', require('./routes/pages'));
-app.use('/api', require('./routes/api'));
-
 app.use(
 	'/static/fonts/font-awesome',
 	express.static(
+		// Need to do this ugly resolve; using requre.resolve() doesn't seem to work,
+		// possibly because the font-awesome package contains no main entry or index.js,
+		// so Node treats it as not a package.
 		path.resolve(__dirname, '..', 'node_modules', 'font-awesome', 'fonts'),
 		{
 			fallthrough: false
@@ -80,30 +79,19 @@ app.use(
 	)
 );
 
+app.use('/', require('./routes/authentication'));
+app.use('/api', require('./routes/api'));
+
 if (Config.app.isDevelopment) {
 	const webpack = require('webpack');
 	const webpackDevMiddleware = require('webpack-dev-middleware');
 	const webpackHotMiddleware = require('webpack-hot-middleware');
 
 	const webpackConfig = require('../webpack.config.js');
-	const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true';
-
-	// _.each(
-	// 	webpackConfig.entry,
-	// 	(entry, key) => {
-	// 		if (_.isString(entry)) {
-	// 			webpackConfig.entry[key] = entry = [entry];
-	// 		}
-
-	// 		entry.push(hotMiddlewareScript);
-
-	// 		entry.unshift('react-hot-loader/patch');
-	// 	}
-	// );
 
 	webpackConfig.entry = [
 		'react-hot-loader/patch',
-		hotMiddlewareScript,
+		'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true',
 		webpackConfig.entry
 	];
 
@@ -136,9 +124,9 @@ else {
 app.get(
 	'*',
 	function(req, res, next) {
+		// If what we're serving is supposed to be HTML, serve the base page.
 		if (req.accepts(['html', 'json']) === 'html') {
-			res.render('page', {
-				title: 'Call Circle',
+			res.render('index', {
 				req: req
 			});
 		}
@@ -169,6 +157,10 @@ app.use(function(err, req, res, next) {
 			} :
 			{}
 	};
+
+	if (Config.app.isDevelopment && err.status !== 404) {
+		console.error(err);
+	}
 
 	res.format({
 		'json': () => res.json(errData),

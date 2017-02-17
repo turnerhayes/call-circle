@@ -4,7 +4,7 @@ import { Link } from "react-router";
 export default class IssuesList extends React.Component {
 	render() {
 		return (
-			<div>
+			<div className="issue-list">
 				<ul>
 					{
 						this.props.issues.map(

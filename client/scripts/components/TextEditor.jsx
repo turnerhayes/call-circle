@@ -6,15 +6,27 @@ import "draft-js/dist/Draft.css";
 import "text-editor.less";
 
 class TextEditor extends React.Component {
+	static toMarkdown(content) {
+		if (!content) {
+			return '';
+		}
+
+		return draftjsToMd(convertToRaw(content));
+	}
+
 	state = {
 		editorState: EditorState.createWithContent(convertFromRaw(mdToDraftjs(this.props.value || '')))
 	}
+
+	// componentWillReceiveProps(nextProps) {
+	// 	if (nextProps.)
+	// }
 
 	handleEditorStateChanged(newState) {
 		this.setState({editorState: newState});
 
 		if (this.props.onChange) {
-			this.props.onChange(draftjsToMd(convertToRaw(this.state.editorState.getCurrentContent())));
+			this.props.onChange(this.state.editorState.getCurrentContent());
 		}
 	}
 

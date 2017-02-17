@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import IssuesList from "./issues/List";
 import IssueUtils from "../utils/issue";
 import UserUtils from "../utils/user";
+import "issues/issue-list.less";
 
 class Issues extends React.Component {
 	state = {
@@ -37,18 +38,23 @@ class Issues extends React.Component {
 
 	renderIssues() {
 		return (
-			<section>
-				<Link
-					className="btn fa fa-calendar-plus-o fa-2x"
-					to="/issues/add"
-				>
-					Create an Issue
-				</Link>
-				<Link
-					className="fa fa-search"
-					to="/issues/search"
-				>
-				</Link>
+			<section className="issues-container">
+				<div className="issue-links">
+					<Link
+						className="fa fa-calendar-plus-o fa-2x"
+						to="/issues/add"
+						aria-label="Create an issue"
+						title="Create an issue"
+					>
+					</Link>
+					<Link
+						className="fa fa-search fa-2x"
+						to="/issues/search"
+						aria-label="Search Issues"
+						title="Search Issues"
+					>
+					</Link>
+				</div>
 				<IssuesList issues={this.state.issues} />
 			</section>
 		);

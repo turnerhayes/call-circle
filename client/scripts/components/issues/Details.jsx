@@ -15,7 +15,9 @@ class IssueDetails extends React.Component {
 	}
 
 	componentWillMount() {
-		IssueUtils.findByID(this.props.issueID).then(
+		IssueUtils.findByID(this.props.issueID, {
+			includeUsers: true
+		}).then(
 			issue => this.setState({issue}),
 			ex => this.setState({issueLoadError: ex})
 		);
@@ -45,18 +47,27 @@ class IssueDetails extends React.Component {
 						{this.state.issue.name}
 					</h2>
 
-					{
-						this.state.issue.created_by.id === UserUtils.currentUser.id ?
-							(
-								<Link
-									className="edit-issue-link fa fa-edit fa-2x"
-									to="/issues/edit/2"
-									aria-label="Edit Issue"
-									title="Edit Issue"
-								/>
-							) :
-							""
-					}
+					<div className="issue-actions">
+						<button
+							className="btn fa fa-plus fa-2x"
+							aria-label="Subscribe to Issue"
+							title="Subscribe to Issue"
+							onClick={() => IssueUtils.subscribeToIssue(this.state.issue)}
+						>
+						</button>
+						{
+							this.state.issue.createdBy.id === UserUtils.currentUser.id ?
+								(
+									<Link
+										className="edit-issue-link fa fa-edit fa-2x"
+										to={`/issues/edit/${this.state.issue.id}`}
+										aria-label="Edit Issue"
+										title="Edit Issue"
+									/>
+								) :
+								""
+						}
+					</div>
 				</header>
 
 				<p

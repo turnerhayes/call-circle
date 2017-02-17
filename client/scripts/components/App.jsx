@@ -1,8 +1,7 @@
 import React from "react";
 import { Link, withRouter } from "react-router";
-import Breadcrumbs from "react-breadcrumbs";
+import TopNavigation from "./TopNavigation";
 import "bootstrap/dist/js/bootstrap.js";
-import "breadcrumbs.less";
 import "page-layout.less";
 
 class App extends React.Component {
@@ -10,12 +9,7 @@ class App extends React.Component {
 		return (
 			<section className="page-layout__main-container">
 				<header>
-					<Breadcrumbs
-						routes={this.props.routes}
-						params={this.props.params}
-						separator=" / "
-						setDocumentTitle={true}
-					/>
+					<TopNavigation />
 				</header>
 				<article className="page-layout__main-content">
 					{this.props.children}

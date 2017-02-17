@@ -10,36 +10,71 @@ function processResult(result) {
 }
 
 export default class IssueUtils {
-	static findByID(issueID) {
+	static findByID(issueID, options) {
+		options = options || {};
+
 		return $.ajax({
 			url: `/api/issues/${issueID}`,
 			dataType: "json",
 			type: "get",
 			data: {
-				include_users: true
+				includeUsers: options.includeUsers
 			}
 		}).then(
-			processResult,
+			processResult
+		).catch(
 			(jqXHR, textStatus) => {
 				throw new Error(textStatus);
 			}
 		);
 	}
 
-	static findByUserID(userID) {
+	static findByUserID(userID, options) {
+		options = options || {};
+
 		return $.ajax({
 			url: "/api/issues",
 			dataType: "json",
 			type: "get",
 			data: {
-				userID
+				userid: userID,
+				includeUsers: options.includeUsers
 			}
 		}).then(
-			results => results.map(processResult),
+			results => results.map(processResult)
+		).catch(
 			(jqXHR, textStatus) => {
 				throw new Error(textStatus);
 			}
 		);
+	}
+
+	static getUserIssues(userID) {
+		return $.ajax({
+			url: "/api/issues",
+			type: "get",
+			dataType: "json",
+			data: {
+				userid: userID
+			}
+		}).then(
+			results => results.map(processResult)
+		).catch(
+			(jqXHR, textStatus) => {
+				throw new Error(textStatus);
+			}
+		);
+	}
+
+	static subscribeToIssue(issue) {
+		return $.ajax({
+			url: `/api/issues/${issue.id}/subscribe`,
+			type: "post"
+		}).catch(
+			(jqXHR, textStatus) => {
+				throw new Error(textStatus);
+			}
+		)
 	}
 
 	static createIssue(issue) {
@@ -50,7 +85,8 @@ export default class IssueUtils {
 			contentType: "application/json",
 			data: JSON.stringify(issue)
 		}).then(
-			processResult,
+			processResult
+		).catch(
 			(jqXHR, textStatus) => {
 				throw new Error(textStatus);
 			}
@@ -65,11 +101,20 @@ export default class IssueUtils {
 			contentType: "application/json",
 			data: JSON.stringify(_.omit(issue, ['id']))
 		}).then(
-			processResult,
+			processResult
+		).catch(
 			(jqXHR, textStatus) => {
 				throw new Error(textStatus);
 			}
 		);
+	}
+
+	static saveIssue(issue) {
+		if (issue.id) {
+			return IssueUtils.editIssue(issue);
+		}
+
+		return IssueUtils.createIssue(issue);
 	}
 
 	static searchIssues(options) {
@@ -79,7 +124,8 @@ export default class IssueUtils {
 			dataType: "json",
 			data: options
 		}).then(
-			results => results.map(processResult),
+			results => results.map(processResult)
+		).catch(
 			(jqXHR, textStatus) => {
 				throw new Error(textStatus);
 			}

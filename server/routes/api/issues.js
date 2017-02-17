@@ -1,9 +1,20 @@
 "use strict";
 
+const _ = require('lodash');
 const express = require('express');
 const IssuesStore = require('../../persistence/stores/issue');
 
 const router = express.Router();
+
+function processIssue(req, issue) {
+	const issueJSON = issue.toJSON();
+
+	if (req.user && issue.users) {
+		issueJSON.userIsSubscribed = issue.isUserSubscribed(req.user);
+	}
+
+	return issueJSON;
+}
 
 router.route('/')
 	.get(
@@ -11,12 +22,15 @@ router.route('/')
 			const userID = req.query.userid || req.user.id;
 
 			const options = {
-				includeUsers: req.query.include_users === "true"
+				currentUser: req.user,
+				includeUsers: req.query.includeUsers === "true",
+				includeExpired: req.query.includeExpired === "true",
+				expiredOnly: req.query.expiredOnly === "true"
 			};
 
 			if (userID) {
 				IssuesStore.findByUserID(userID, options).then(
-					res.json.bind(res)
+					issues => res.json(issues.map(processIssue.bind(null, req)))
 				).catch(ex => next(ex));
 			}
 			else {
@@ -36,12 +50,12 @@ router.route('/')
 			IssuesStore.createIssue(
 				_.extend(
 					{
-						created_by: req.user
+						createdBy: req.user
 					},
 					req.body
 				)
 			).then(
-				res.json.bind(res)
+				issue => res.status(201).location(req.baseUrl + '/' + issue.id).json(processIssue(req, issue))
 			).catch(ex => next(ex));
 		}
 	);
@@ -52,13 +66,14 @@ router.route('/search')
 			const searchArgs = req.query;
 
 			const options = {
-				includeUsers: req.query.include_users === "true"
+				currentUser: req.user,
+				includeUsers: req.query.includeUsers === "true"
 			};
 
 			delete searchArgs.include_users;
 
 			IssuesStore.searchIssues(searchArgs, options).then(
-				res.json.bind(res)
+				issues => res.json(issues.map(processIssue.bind(null, req)))
 			).catch(ex => next(ex));
 		}
 	);
@@ -66,12 +81,14 @@ router.route('/search')
 router.route('/:issueID')
 	.get(
 		(req, res, next) => {
-			const options = {};
+			const options = {
+				currentUser: req.user,
+				includeUsers: req.query.includeUsers === "true"
+			};
 
-			options.includeUsers = req.query.include_users === "true";
 
 			IssuesStore.findByID(req.params.issueID, options).then(
-				res.json.bind(res)
+				issue => res.set('Last-Modified', issue.updated_at).json(processIssue(req, issue))
 			).catch(ex => next(ex));
 		}
 	).post(
@@ -80,8 +97,32 @@ router.route('/:issueID')
 
 			issue.id = req.params.issueID;
 
-			IssuesStore.updateIssue(issue).then(
-				res.json.bind(res)
+			const options = {
+				currentUser: req.user
+			};
+
+			IssuesStore.updateIssue(issue, options).then(
+				issue => res.json(processIssue(req, issue))
+			).catch(ex => next(ex));
+		}
+	);
+
+router.route('/:issueID/subscribe')
+	.post(
+		(req, res, next) => {
+			if (!req.user) {
+				const err = new Error('You must be logged in to subscribe to an issue');
+				err.status = 403;
+
+				next(err);
+				return;
+			}
+
+			IssuesStore.subscribeToIssue({
+				issueID: Number(req.params.issueID),
+				userID: req.user.id
+			}).then(
+				issue => res.json(processIssue(req, issue))
 			).catch(ex => next(ex));
 		}
 	);

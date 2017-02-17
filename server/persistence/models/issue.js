@@ -1,5 +1,6 @@
 "use strict";
 
+const _ = require('lodash');
 const Sequelize = require('sequelize');
 const DB = require('../database-connection');
 const UserModel = require('./user');
@@ -35,6 +36,67 @@ const IssueModel = DB.define('issue',
 		}
 	},
 	{
+		defaultScope: {
+			attributes: {
+				exclude: ['created_by_id']
+			},
+			where: {
+				deleted_at: null
+			},
+			include: [
+				{
+					model: UserModel,
+					as: 'createdBy'
+				}
+			]
+		},
+		scopes: {
+			inProgress: {
+				where: {
+					$or: [
+						{
+							deadline: null
+						},
+						{
+							deadline: {
+								$gte: Sequelize.literal('CURRENT_TIMESTAMP')
+							}
+						}
+					]
+				}
+			},
+			expired: {
+				where: {
+					deadline: {
+						$lt: Sequelize.literal('CURRENT_TIMESTAMP')
+					}
+				}
+			},
+			withUsers: function(requireUsers, userWhere) {
+				return {
+					include: [
+						{
+							model: UserModel,
+							where: userWhere,
+							required: requireUsers
+						}
+					]
+				};
+			}
+		},
+		getterMethods: {
+			isExpired: function() {
+				return !!(this.getDataValue('deadline') && this.getDataValue('deadline') < new Date());
+			}
+		},
+		instanceMethods: {
+			isUserSubscribed: function(user) {
+				// user can either be a user ID or a user instance
+				const userID = _.isNumber(user) ? user : user.id;
+
+				return !!_.find(this.users, u => u.id === userID);
+			}
+		},
 		indexes: [
 			{
 				fields: ['deadline']
