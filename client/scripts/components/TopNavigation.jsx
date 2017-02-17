@@ -1,21 +1,25 @@
-import React from "react";
 import _ from "lodash";
+import React from "react";
+import { Link, withRouter } from "react-router";
+import Breadcrumbs from "react-breadcrumbs";
+import UserUtils from "../utils/user";
+import "breadcrumbs.less";
 
 class TopNavigation extends React.Component {
 	render() {
-		const user = null;
-
 		let userLinkElements;
 
-		if (user) {
+		if (UserUtils.currentUser) {
 			userLinkElements = [
 				<span key={_.uniqueId()}>Logged in as </span>,
-				<a href="/profile/" key={_.uniqueId()}></a>
+				<Link href={`/profile/${UserUtils.currentUser.username}`} key={_.uniqueId()}>
+					{UserUtils.currentUser.displayName}
+				</Link>
 			];
 		}
 		else {
 			userLinkElements = [
-				<a href="/auth/fb" key={_.uniqueId()}>Log in</a>
+				<Link to="/" key={_.uniqueId()}>Log in</Link>
 			];
 		}
 
@@ -23,10 +27,19 @@ class TopNavigation extends React.Component {
 			<nav className="top-nav navbar navbar-default">
 				<div className="container-fluid">
 					<div className="navbar-header">
-						<a href="/" className="navbar-brand brand">CallCircle</a>
+						<Breadcrumbs
+							routes={this.props.routes}
+							params={this.props.params}
+							separator=" / "
+							setDocumentTitle={true}
+						/>
 					</div>
 					<ul className="nav navbar-nav">
-						
+						<li>
+							<Link to="/issues">
+								Issues
+							</Link>
+						</li>
 					</ul>
 					<p className="navbar-text navbar-right">
 						{userLinkElements}
@@ -37,4 +50,4 @@ class TopNavigation extends React.Component {
 	}
 }
 
-export default TopNavigation;
+export default withRouter(TopNavigation);

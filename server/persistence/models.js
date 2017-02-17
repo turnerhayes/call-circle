@@ -4,7 +4,7 @@ const UserModel = require('./models/user');
 const IssueModel = require('./models/issue');
 const TagModel = require('./models/tag');
 
-IssueModel.belongsTo(UserModel, { as: 'created_by' });
+IssueModel.belongsTo(UserModel, { as: 'createdBy' });
 
 UserModel.belongsToMany(IssueModel, {
 	through: 'user_issues',

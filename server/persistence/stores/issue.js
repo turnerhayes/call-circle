@@ -1,99 +1,110 @@
 "use strict";
 
 const _         = require('lodash');
+const assert    = require('assert');
 const Sequelize = require('sequelize');
 const models    = require('../models');
 
 const IssueModel = models.Issue;
 
-function getFindOptions(args) {
-	args = args || {};
-
-	const options = {
-		attributes: {
-			exclude: ['created_by_id']
-		},
-		where: Object.assign(
+function getCurrentUserScope(currentUser) {
+	return {
+		method: [
+			'withUsers',
+			false,
 			{
-				deleted_at: null
-			},
-			args.issueWhere || {}
-		),
-		include: [
-			{
-				model: models.Tag,
-				as: 'tags'
+				id: currentUser.id
 			}
 		]
-	};
-
-	if (args.includeUsers) {
-		options.include.push(
-			{
-				model: models.User,
-				as: 'created_by'
-			},
-			{
-				model: models.User,
-				where: Object.assign(
-					{
-						deleted_at: null
-					},
-					args.userWhere || {}
-				),
-				required: !!args.onlyIssuesWithUsers
-			}
-		);
 	}
-
-	return options;
 }
+
+const queryOptions = {
+	include: [
+		{
+			model: models.User,
+			as: 'createdBy'
+		}
+	]
+};
 
 class IssuesStore {
 	static findByID(id, options) {
-		return IssueModel.findById(
+		options = options || {};
+
+		let scopes = ['defaultScope'];
+
+		if (options.includeUsers) {
+			scopes.push({
+				method: [
+					'withUsers',
+					false
+				]
+			});
+		}
+		else if (options.currentUser) {
+			scopes.push(getCurrentUserScope(options.currentUser));
+		}
+
+		return IssueModel.scope(...scopes).findById(
 			id,
-			getFindOptions({
-				includeUsers: options.includeUsers
-			})
+			queryOptions
 		).then(
 			issue => issue || Sequelize.Promise.reject(null)
 		);
 	}
 
-	static findByUserID(userID) {
-		return IssueModel.findAll(
-			getFindOptions({
-				includeUsers: true,
-				onlyIssuesWithUsers: true,
-				userWhere: {
-					id: userID
+	static findByUserID(userID, options) {
+		options = options || {};
+
+		const scopes = ['defaultScope'];
+
+		if (options.expiredOnly) {
+			scopes.push('expired');
+		}
+		else if (!options.includeExpired) {
+			scopes.push('inProgress');
+		}
+
+		scopes.push({
+			method: [
+				'withUsers',
+				// If we want to include all users, make this include not required. Otherwise,
+				// results should require the user (and optionally the current user)
+				!options.includeUsers,
+				{
+					id: {
+						$in: [userID].concat(options.currentUser ? [options.currentUser.id] : [])
+					}
 				}
-			})
-		);
+			]
+		});
+
+		return IssueModel.scope(...scopes).findAll(queryOptions);
 	}
 
 	static createIssue(issue) {
-		if (!issue) {
-			throw new Error('"issue" parameter in "IssuesStore.createIssue" is missing');
-		}
+		assert(issue, '"issue" parameter in "IssuesStore.createIssue" is missing');
 
-		const { name, category, deadline, description, created_by, tags } = issue;
+		let created_by_id;
 
-		return IssueModel.create({
+		const { name, category, deadline, description, tags } = issue;
+
+		const issueModel = IssueModel.build({
 			name,
 			category,
 			deadline,
 			description,
-			created_by,
 			tags
 		});
+
+		issueModel.setCreatedBy(issue.createdBy);
+
+		return issueModel.save();
 	}
 
 	static updateIssue(issueData, options) {
-		if (!issueData) {
-			throw new Error('"issueData" parameter in "IssuesStore.updateIssue" is missing');
-		}
+		assert(issueData, '"issueData" parameter in "IssuesStore.updateIssue" is missing');
 
 		options = options || {};
 
@@ -104,9 +115,32 @@ class IssuesStore {
 		);
 	}
 
+	static subscribeToIssue(args, options) {
+		args = args || {};
+		const { issueID, userID } = args;
+		delete args.issueID;
+		delete args.userID;
+
+		assert(issueID, '"issueID" parameter in "IssuesStore.subscribeToIssue" is missing');
+		assert(userID, '"userID" parameter in "IssuesStore.subscribeToIssue" is missing');
+
+		return IssuesStore.findByID(issueID).then(
+			issue => issue.addUser(userID)
+		);
+	}
+
 	static searchIssues(searchArgs, options) {
 		const where = {};
 		options = options || {};
+
+		const scopes = ['defaultScope'];
+
+		if (options.includeUsers) {
+			scopes.push('withUsers');
+		}
+		else if (options.currentUser) {
+			scopes.push(getCurrentUserScope(options.currentUser));
+		}
 
 		if (searchArgs.query) {
 			const likeQuery = '%' + searchArgs.query.toLowerCase() + '%';
@@ -133,12 +167,14 @@ class IssuesStore {
 			}
 		}
 
-		return IssueModel.findAll(
-			getFindOptions({
-				issueWhere: where,
-				includeUsers: options.includeUsers
-			})
+		const opts = Object.assign(
+			{
+				where: where
+			},
+			queryOptions
 		);
+
+		return IssueModel.scope(...scopes).findAll(opts);
 	}
 }
 

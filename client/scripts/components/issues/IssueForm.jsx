@@ -1,73 +1,89 @@
 import _ from "lodash";
 import React from "react";
 import { SingleDatePicker } from "react-dates";
+import { withRouter } from "react-router";
 import TextEditor from "../TextEditor";
-import IssueScopePicker from "./IssueScopePicker";
+import IssueUtils from "../../utils/issue";
 import Categories from "../../../../server/persistence/categories";
 import "react-dates/lib/css/_datepicker.css";
 
-export default class IssueForm extends React.Component {
-	formType = this.props.isNew ? 'add' : 'edit'
+const PROP_NAMES = ['name', 'category', 'deadline', 'description'];
+
+const CATEGORY_LIST = _.map(Categories,
+	(category, categoryType) => ({
+		id: categoryType,
+		name: category.name	
+	})
+);
+
+function getState(issue) {
+	if (issue) {
+		return PROP_NAMES.reduce(
+			(state, propName) => {
+				state[propName] = issue[propName];
+
+				return state;
+			},
+			{}
+		);
+	}
+	else {
+		return {
+			name: "",
+			category: CATEGORY_LIST[0].id,
+			deadline: null,
+			description: ""
+		};
+	}
+}
+
+class IssueForm extends React.Component {
+	formType = this.props.issue ? 'add' : 'edit'
 
 	componentID = _.uniqueId(`${this.formType}-issue-`)
 
 	static propTypes = {
-		isNew: React.PropTypes.bool,
-		name: React.PropTypes.string,
-		category: React.PropTypes.string,
-		deadline: React.PropTypes.object,
-		scope: React.PropTypes.array,
-		description: React.PropTypes.string,
-		onNameChange: React.PropTypes.func,
-		onCategoryChange: React.PropTypes.func,
-		onDeadlineChange: React.PropTypes.func,
-		onDescriptionChange: React.PropTypes.func,
-		onScopeChange: React.PropTypes.func,
-		onFormSubmit: React.PropTypes.func
+		issue: React.PropTypes.object
 	}
 
 	static defaultProps = {
-		isNew: false
+		issue: null
 	}
 
-	state = {
+	state = Object.assign(getState(this.props.issue), {
 		isDeadlinePickerFocused: false
-	}
+	})
 
-	handleChangeName = value => {
-		if (this.props.onNameChange) {
-			this.props.onNameChange(value);
-		}
-	}
-
-	handleChangeCategory = value => {
-		if (this.props.onCategoryChange) {
-			this.props.onCategoryChange(value);
-		}
-	}
-
-	handleChangeDeadline = value => {
-		if (this.props.onDeadlineChange) {
-			this.props.onDeadlineChange(value);
-		}
-	}
-
-	handleChangeDescription = value => {
-		if (this.props.onDescriptionChange) {
-			this.props.onDescriptionChange(value);
-		}
-	}
-
-	handleChangeScope = value => {
-		if (this.props.onScopeChange) {
-			this.props.onScopeChange(value);
-		}
+	componentWillReceiveProps(nextProps) {
+		this.setState(getState(nextProps.issue));
 	}
 
 	handleFormSubmit = event => {
-		if (this.props.onFormSubmit) {
-			this.props.onFormSubmit(event);
+		event.preventDefault();
+
+		const dataValues = PROP_NAMES.reduce(
+			(values, propName) => {
+				values[propName] = this.state[propName];
+
+				return values;
+			},
+			{}
+		);
+
+		if (!_.isString(dataValues.description)) {
+			dataValues.description = TextEditor.toMarkdown(this.state.description);
 		}
+
+		if (dataValues.deadline) {
+			// Convert Moment.js object to plain JS date
+			dataValues.deadline = dataValues.deadline.toDate();
+		}
+
+		IssueUtils.saveIssue(dataValues).done(
+			issue => this.props.router.push(`/issues/${issue.id}`)
+		).fail(
+			err => console.error('Error saving issue: ', err)
+		);
 	}
 
 	render() {
@@ -90,8 +106,8 @@ export default class IssueForm extends React.Component {
 						className="form-control"
 						id={`${this.componentID}-name`}
 						placeholder="Name"
-						defaultValue={this.props.name}
-						onChange={event => this.handleChangeName(event.target.value)}
+						defaultValue={this.state.name}
+						onChange={event => this.setState({name: event.target.value})}
 						maxLength={1000}
 						required
 					/>
@@ -106,16 +122,16 @@ export default class IssueForm extends React.Component {
 					<select
 						className="form-control"
 						id={`${this.componentID}-category`}
-						defaultValue={this.props.category}
-						onChange={event => this.handleChangeCategory(event.target.value)}
+						defaultValue={this.state.category}
+						onChange={event => this.setState({category: event.target.value})}
 						required
 					>
 						{
-							_.map(Categories,
-								(category, categoryType) => (
+							CATEGORY_LIST.map(
+								category =>	(
 									<option
-										value={categoryType}
-										key={categoryType}
+										value={category.id}
+										key={category.id}
 									>{category.name}</option>
 								)
 							)
@@ -128,24 +144,15 @@ export default class IssueForm extends React.Component {
 					<SingleDatePicker
 						className="form-control"
 						id={`${this.componentID}-deadline`}
-						onDateChange={date => this.handleChangeDeadline(date)}
-						date={this.props.deadline}
+						onDateChange={deadline => this.setState({deadline})}
+						date={this.state.deadline}
 						focused={this.state.isDeadlinePickerFocused}
-						onFocusChange={(status) => this.setState({isDeadlinePickerFocused: status.focused})}
+						onFocusChange={status => this.setState({isDeadlinePickerFocused: status.focused})}
+						numberOfMonths={1}
+						enableOutsideDays={true}
+						isOutsideRange={() => false}
 						placeholder="Deadline"
 						showClearDate={true}
-					/>
-				</div>
-				<div
-					className="form-group"
-				>
-					<label
-						htmlFor={`${this.componentID}-scope`}
-						className="sr-only"
-					>Location</label>
-					<IssueScopePicker
-						scope={this.props.scope}
-						onChange={value => this.handleChangeScope(value)}
 					/>
 				</div>
 				<div
@@ -159,8 +166,8 @@ export default class IssueForm extends React.Component {
 						className="description-editor"
 					>
 						<TextEditor
-							value={this.props.description}
-							onChange={value => this.handleChangeDescription(value)}
+							value={this.state.description}
+							onChange={description => this.setState({description})}
 							placeholder="Description"
 						/>
 					</div>
@@ -173,3 +180,5 @@ export default class IssueForm extends React.Component {
 		);
 	}
 }
+
+export default withRouter(IssueForm);
