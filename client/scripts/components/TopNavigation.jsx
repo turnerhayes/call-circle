@@ -6,6 +6,11 @@ import UserUtils from "../utils/user";
 import "breadcrumbs.less";
 
 class TopNavigation extends React.Component {
+	static propTypes = {
+		"routes": React.PropTypes.array,
+		"params": React.PropTypes.object
+	}
+
 	render() {
 		let userLinkElements;
 

@@ -7,12 +7,12 @@ import IssueUtils from "../../utils/issue";
 import Categories from "../../../../server/persistence/categories";
 import "react-dates/lib/css/_datepicker.css";
 
-const PROP_NAMES = ['name', 'category', 'deadline', 'description'];
+const PROP_NAMES = ["name", "category", "deadline", "description"];
 
 const CATEGORY_LIST = _.map(Categories,
 	(category, categoryType) => ({
-		id: categoryType,
-		name: category.name	
+		"id": categoryType,
+		"name": category.name	
 	})
 );
 
@@ -29,29 +29,32 @@ function getState(issue) {
 	}
 	else {
 		return {
-			name: "",
-			category: CATEGORY_LIST[0].id,
-			deadline: null,
-			description: ""
+			"name": "",
+			"category": CATEGORY_LIST[0].id,
+			"deadline": null,
+			"description": ""
 		};
 	}
 }
 
 class IssueForm extends React.Component {
-	formType = this.props.issue ? 'add' : 'edit'
+	formType = this.props.issue ? "add" : "edit"
 
 	componentID = _.uniqueId(`${this.formType}-issue-`)
 
 	static propTypes = {
-		issue: React.PropTypes.object
+		"issue": React.PropTypes.object,
+		"router": React.PropTypes.object.isRequired,
+		"isNew": React.PropTypes.bool
 	}
 
 	static defaultProps = {
-		issue: null
+		"issue": null,
+		"isNew": false
 	}
 
 	state = Object.assign(getState(this.props.issue), {
-		isDeadlinePickerFocused: false
+		"isDeadlinePickerFocused": false
 	})
 
 	componentWillReceiveProps(nextProps) {
@@ -82,14 +85,14 @@ class IssueForm extends React.Component {
 		IssueUtils.saveIssue(dataValues).done(
 			issue => this.props.router.push(`/issues/${issue.id}`)
 		).fail(
-			err => console.error('Error saving issue: ', err)
+			err => console.error("Error saving issue: ", err)
 		);
 	}
 
 	render() {
 		return (
 			<form
-				action={`/issues${this.props.isNew ? '' : '/' + this.props.id}`}
+				action={`/issues${this.props.isNew ? "" : "/" + this.props.issue.id}`}
 				method="post"
 				encType="application/x-www-form-urlencoded"
 				onSubmit={event => this.handleFormSubmit(event)}
@@ -107,7 +110,7 @@ class IssueForm extends React.Component {
 						id={`${this.componentID}-name`}
 						placeholder="Name"
 						defaultValue={this.state.name}
-						onChange={event => this.setState({name: event.target.value})}
+						onChange={event => this.setState({"name": event.target.value})}
 						maxLength={1000}
 						required
 					/>
@@ -123,7 +126,7 @@ class IssueForm extends React.Component {
 						className="form-control"
 						id={`${this.componentID}-category`}
 						defaultValue={this.state.category}
-						onChange={event => this.setState({category: event.target.value})}
+						onChange={event => this.setState({"category": event.target.value})}
 						required
 					>
 						{
@@ -147,7 +150,7 @@ class IssueForm extends React.Component {
 						onDateChange={deadline => this.setState({deadline})}
 						date={this.state.deadline}
 						focused={this.state.isDeadlinePickerFocused}
-						onFocusChange={status => this.setState({isDeadlinePickerFocused: status.focused})}
+						onFocusChange={status => this.setState({"isDeadlinePickerFocused": status.focused})}
 						numberOfMonths={1}
 						enableOutsideDays={true}
 						isOutsideRange={() => false}
@@ -175,7 +178,7 @@ class IssueForm extends React.Component {
 				<button
 					type="submit"
 					className="btn btn-primary"
-				>{this.props.isNew ? 'Add' : 'Save'}</button>
+				>{this.props.isNew ? "Add" : "Save"}</button>
 			</form>
 		);
 	}

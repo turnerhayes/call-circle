@@ -6,15 +6,19 @@ import UserUtils from "../utils/user";
 import "issues/issue-list.less";
 
 class Issues extends React.Component {
+	static propTypes = {
+		"user": React.PropTypes.object.isRequired
+	}
+
 	state = {
-		issues: null,
-		issueLoadError: null
+		"issues": null,
+		"issueLoadError": null
 	}
 
 	componentWillMount() {
 		IssueUtils.findByUserID((this.props.user || UserUtils.currentUser).id).then(
 			issues => this.setState({issues}),
-			ex => this.setState({issueLoadError: ex})
+			ex => this.setState({"issueLoadError": ex})
 		);
 	}
 

@@ -2,6 +2,10 @@ import React from "react";
 import { Link } from "react-router";
 
 export default class IssuesList extends React.Component {
+	static propTypes = {
+		"issues": React.PropTypes.arrayOf(React.PropTypes.object)
+	}
+
 	render() {
 		return (
 			<div className="issue-list">

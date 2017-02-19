@@ -1,19 +1,22 @@
 "use strict";
 
-const Sequelize = require('sequelize');
-const Config = require('../../lib/config');
+const Sequelize = require("sequelize");
+const Loggers = require("../lib/loggers");
+const Config = require("../../lib/config");
 
 let sqlize;
 
 const options = {
-	host: Config.auth.db.host,
-	dialect: 'postgres',
-	define: {
-		underscored: true,
-		underscoredAll: true,
-		paranoid: true,
-		timestamps: true
-	}
+	"dialect": "postgres",
+	"define": {
+		"underscored": true,
+		"underscoredAll": true,
+		"paranoid": true,
+		"timestamps": true
+	},
+	"logging": Config.logging.sql.file === false ?
+		false :
+		Loggers.sql
 };
 
 if (Config.auth.db.url) {
@@ -23,6 +26,8 @@ if (Config.auth.db.url) {
 	);
 }
 else {
+	options.host = Config.auth.db.host;
+
 	sqlize = new Sequelize(
 		Config.auth.db.databaseName,
 		Config.auth.db.username,

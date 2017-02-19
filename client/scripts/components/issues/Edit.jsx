@@ -5,19 +5,23 @@ import IssueUtils from "../../utils/issue";
 const CONTAINER_CLASS = "edit-issue-container";
 
 class EditIssue extends React.Component {
+	static propTypes = {
+		"issueID": React.PropTypes.number.isRequired
+	}
+
 	state = {
-		issue: null,
-		issueLoadError: null
+		"issue": null,
+		"issueLoadError": null
 	}
 
 	componentWillMount() {
 		IssueUtils.findByID(this.props.issueID).then(
 			issue => {
 				this.setState({
-					issue: issue
+					"issue": issue
 				});
 			},
-			ex => this.setState({issueLoadError: ex})
+			ex => this.setState({"issueLoadError": ex})
 		);
 	}
 

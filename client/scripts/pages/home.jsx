@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom";
+import React from "react";
 import App from "../components/App";
 import HomePage from "../components/Home";
 
@@ -7,5 +8,5 @@ ReactDOM.render(
 		<HomePage
 		/>
 	</App>,
-	document.getElementById('app')
+	document.getElementById("app")
 );

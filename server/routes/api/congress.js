@@ -1,12 +1,12 @@
 "use strict";
 
-const express = require('express');
-const Promise = require('bluebird');
-const CongressDataStore = require('../../persistence/stores/congress-data');
+const express = require("express");
+const Promise = require("bluebird");
+const CongressDataStore = require("../../persistence/stores/congress-data");
 
 const router = express.Router();
 
-router.route('/chambers')
+router.route("/chambers")
 	.get(
 		(req, res, next) => {
 			Promise.all([
@@ -15,15 +15,15 @@ router.route('/chambers')
 			]).spread(
 				(house, senate) => {
 					res.json({
-						house: house,
-						senate: senate
+						"house": house,
+						"senate": senate
 					});
 				}
 			).catch(ex => next(ex));
 		}
 	);
 
-router.route('/house')
+router.route("/house")
 	.get(
 		(req, res, next) => {
 			CongressDataStore.getHouseMembers().then(
@@ -32,7 +32,7 @@ router.route('/house')
 		}
 	);
 
-router.route('/senate')
+router.route("/senate")
 	.get(
 		(req, res, next) => {
 			CongressDataStore.getSenateMembers().then(
@@ -41,7 +41,7 @@ router.route('/senate')
 		}
 	);
 
-router.route('/districts')
+router.route("/districts")
 	.get(
 		(req, res, next) => {
 			CongressDataStore.getDistricts().then(

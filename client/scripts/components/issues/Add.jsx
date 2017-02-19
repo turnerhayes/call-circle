@@ -1,9 +1,6 @@
-import _ from "lodash";
 import React from "react";
 import { withRouter } from "react-router";
-import TextEditor from "../TextEditor";
 import IssueForm from "./IssueForm";
-import IssueUtils from "../../utils/issue";
 import "issues/add.less";
 
 class AddIssue extends React.Component {

@@ -15,3 +15,9 @@ node_modules
 
 # Store cache
 server/persistence/stores/cache/*
+
+# Logs
+logs
+
+# Environment variable settings
+.env

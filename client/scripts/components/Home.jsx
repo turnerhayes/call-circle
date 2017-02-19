@@ -5,7 +5,7 @@ import "home.less";
 
 class Home extends React.Component {
 	confirmLogout() {
-		if (window.confirm('Are you sure you want to log out?')) {
+		if (window.confirm("Are you sure you want to log out?")) {
 			document.location.href = "/logout";
 		}
 	}

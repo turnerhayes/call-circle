@@ -9,17 +9,31 @@ import "issues/details.less";
 const ISSUE_DETAILS_CONTAINER_CLASS = "issue-details-container";
 
 class IssueDetails extends React.Component {
+	static propTypes = {
+		"issueID": React.PropTypes.number.isRequired
+	}
+
 	state = {
-		issue: null,
-		issueLoadError: null
+		"issue": null,
+		"issueLoadError": null
 	}
 
 	componentWillMount() {
 		IssueUtils.findByID(this.props.issueID, {
-			includeUsers: true
+			"includeUsers": true
 		}).then(
 			issue => this.setState({issue}),
-			ex => this.setState({issueLoadError: ex})
+			ex => this.setState({"issueLoadError": ex})
+		);
+	}
+
+	handleSubscribeButtonClick = () => {
+		(
+			this.state.issue.userIsSubscribed ?
+				IssueUtils.unsubscribeFromIssue(this.state.issue) :
+				IssueUtils.subscribeToIssue(this.state.issue)
+		).then(
+			issue => this.setState({issue})
 		);
 	}
 
@@ -35,6 +49,14 @@ class IssueDetails extends React.Component {
 	}
 
 	renderIssue() {
+		const subscribeButtonLabel = this.state.issue.userIsSubscribed ?
+			"Unsubscribe from this issue" :
+			"Subscribe to this issue";
+
+		const subscribeButtonIcon = this.state.issue.userIsSubscribed ?
+			"minus" :
+			"plus";
+
 		return (
 			<section className={ISSUE_DETAILS_CONTAINER_CLASS}>
 				<header className="issue-header">
@@ -49,10 +71,10 @@ class IssueDetails extends React.Component {
 
 					<div className="issue-actions">
 						<button
-							className="btn fa fa-plus fa-2x"
-							aria-label="Subscribe to Issue"
-							title="Subscribe to Issue"
-							onClick={() => IssueUtils.subscribeToIssue(this.state.issue)}
+							className={`btn fa fa-${subscribeButtonIcon} fa-2x`}
+							aria-label={subscribeButtonLabel}
+							title={subscribeButtonLabel}
+							onClick={this.handleSubscribeButtonClick}
 						>
 						</button>
 						{
@@ -72,7 +94,7 @@ class IssueDetails extends React.Component {
 
 				<p
 					className="description"
-					dangerouslySetInnerHTML={{__html: markdown.toHTML(this.state.issue.description)}}
+					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.state.issue.description)}}
 				/>
 			</section>
 		);

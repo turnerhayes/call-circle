@@ -1,17 +1,19 @@
 "use strict";
 
-const Sequelize = require('sequelize');
-const DB = require('../database-connection');
+const Sequelize = require("sequelize");
+const DB = require("../database-connection");
 
-module.exports = exports = DB.define('tag',
+const MAX_TAG_NAME_LENGTH = 32;
+
+module.exports = exports = DB.define("tag",
 	{
-		name: {
-			type: Sequelize.STRING(32),
-			primaryKey: true
+		"name": {
+			"type": Sequelize.STRING(MAX_TAG_NAME_LENGTH),
+			"primaryKey": true
 		}
 	},
 	{
-		timestamps: false,
-		paranoid: false,
+		"timestamps": false,
+		"paranoid": false,
 	}
 );

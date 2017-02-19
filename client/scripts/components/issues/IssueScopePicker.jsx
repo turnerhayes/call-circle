@@ -4,6 +4,7 @@ import CongressDataUtils from "../../utils/congress-data";
 import "issues/issue-scope-picker";
 
 function getOrdinalSuffix(num) {
+	/* eslint-disable no-magic-numbers */
 	let last = num % 100;
 
 	// teens end with "th"; might as well include "20th" and "4th" through "9th"
@@ -24,29 +25,30 @@ function getOrdinalSuffix(num) {
 	if (last === 3) {
 		return "rd";
 	}
+	/* eslint-enable no-magic-numbers */
 
 	return "th";
 }
 
 export default class IssueScopePicker extends React.Component {
 	state = {
-		districts: null,
-		districtsLoadError: null
+		"districts": null,
+		"districtsLoadError": null
 	}
 
 	static propTypes = {
-		onChange: React.PropTypes.func,
-		scope: React.PropTypes.array
+		"onChange": React.PropTypes.func,
+		"scope": React.PropTypes.array
 	}
 
 	static defaultProps = {
-		scope: []
+		"scope": []
 	}
 
 	componentDidMount() {
 		CongressDataUtils.getDistricts().then(
 			districts => this.setState({districts})
-		).catch(ex => this.setState({districtsLoadError: ex}));
+		).catch(ex => this.setState({"districtsLoadError": ex}));
 	}
 
 	handleScopeChange = (scope) => {
@@ -56,6 +58,7 @@ export default class IssueScopePicker extends React.Component {
 	}
 
 	renderPicker() {
+		// eslint-disable-next-line no-magic-numbers
 		const hasDistricts = this.props.scope[0] && this.state.districts[this.props.scope[0]].length > 1;
 
 		return (

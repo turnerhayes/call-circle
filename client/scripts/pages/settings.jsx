@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom";
+import React from "react";
 import App from "../components/App";
 import Settings from "../components/Settings";
 
@@ -7,5 +8,5 @@ ReactDOM.render(
 		<Settings
 		/>
 	</App>,
-	document.getElementById('app')
+	document.getElementById("app")
 );

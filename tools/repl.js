@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
-const repl = require('repl');
+"use strict";
+
+require("dotenv").config();
+const repl = require("repl");
 
 const replServer = repl.start({
-	prompt: 'ccircle> '
+	"prompt": "ccircle> "
 });
 
-replServer.context.Models = require('../server/persistence/models');
+replServer.context.Models = require("../server/persistence/models");
 replServer.context.Stores = {
-	User: require('../server/persistence/stores/user'),
-	Issue: require('../server/persistence/stores/issue')
+	"User": require("../server/persistence/stores/user"),
+	"Issue": require("../server/persistence/stores/issue")
 };

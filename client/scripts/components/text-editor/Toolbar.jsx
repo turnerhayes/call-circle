@@ -2,34 +2,34 @@ import React from "react";
 
 const INLINE_STYLES = [
 	{
-		label: 'Bold',
-		style: 'BOLD',
-		icon: 'bold'
+		"label": "Bold",
+		"style": "BOLD",
+		"icon": "bold"
 	},
 	{
-		label: 'Italic',
-		style: 'ITALIC',
-		icon: 'italic'
+		"label": "Italic",
+		"style": "ITALIC",
+		"icon": "italic"
 	},
 	{
-		label: 'Underline',
-		style: 'UNDERLINE',
-		icon: 'underline'
+		"label": "Underline",
+		"style": "UNDERLINE",
+		"icon": "underline"
 	},
 	{
-		label: 'Monospace',
-		style: 'CODE',
-		icon: 'code'
+		"label": "Monospace",
+		"style": "CODE",
+		"icon": "code"
 	}
 ];
 
 export default class TextEditorToolbar extends React.Component {
 	static propTypes = {
-		onStyleToggled: React.PropTypes.func
+		"onStyleToggled": React.PropTypes.func
 	}
 
 	state = {
-		enabledInlineStyles: INLINE_STYLES.reduce(
+		"enabledInlineStyles": INLINE_STYLES.reduce(
 			(memo, style) => {
 				memo[style.style] = false;
 

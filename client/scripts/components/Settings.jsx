@@ -1,20 +1,20 @@
 import React from "react";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 
 let _componentID = 0;
 
 class Settings extends React.Component {
 	state = {
-		selectedTabIndex: 0,
-		contactPreferences: {
-			email: ''
+		"selectedTabIndex": 0,
+		"contactPreferences": {
+			"email": ""
 		}
 	}
 
 	componentID = `settings-component-${_componentID++}`
 
-	handleTabSelect(index, last) {
-		this.setState({selectedTabIndex: index});
+	handleTabSelect = index => {
+		this.setState({"selectedTabIndex": index});
 	}
 
 	render() {
@@ -23,7 +23,7 @@ class Settings extends React.Component {
 				className="user-settings"
 			>
 				<Tabs
-					onSelect={(index, last) => this.handleTabSelect(index, last)}
+					onSelect={this.handleTabSelect}
 					selectedIndex={this.state.selectedTabIndex}
 				>
 					<TabList>
@@ -50,11 +50,11 @@ class Settings extends React.Component {
 									onChange={
 										event => {
 											this.setState({
-												contactPreferences: Object.assign(
+												"contactPreferences": Object.assign(
 													{},
 													this.state.contactPreferences,
 													{
-														email: event.target.value
+														"email": event.target.value
 													}
 												)
 											});

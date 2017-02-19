@@ -1,31 +1,32 @@
 "use strict";
 
-const _ = require('lodash');
-const express = require('express');
-const IssuesStore = require('../../persistence/stores/issue');
+const _ = require("lodash");
+const express = require("express");
+const IssuesStore = require("../../persistence/stores/issue");
 
 const router = express.Router();
 
 function processIssue(req, issue) {
 	const issueJSON = issue.toJSON();
+	const issueUsers = issue.users;
 
-	if (req.user && issue.users) {
+	if (req.user && _.size(issueUsers) > 0) {
 		issueJSON.userIsSubscribed = issue.isUserSubscribed(req.user);
 	}
 
 	return issueJSON;
 }
 
-router.route('/')
+router.route("/")
 	.get(
 		(req, res, next) => {
 			const userID = req.query.userid || req.user.id;
 
 			const options = {
-				currentUser: req.user,
-				includeUsers: req.query.includeUsers === "true",
-				includeExpired: req.query.includeExpired === "true",
-				expiredOnly: req.query.expiredOnly === "true"
+				"currentUser": req.user,
+				"includeUsers": req.query.includeUsers === "true",
+				"includeExpired": req.query.includeExpired === "true",
+				"expiredOnly": req.query.expiredOnly === "true"
 			};
 
 			if (userID) {
@@ -40,7 +41,7 @@ router.route('/')
 	).post(
 		(req, res, next) => {
 			if (!req.user) {
-				const err = new Error('You must be logged in to create an issue');
+				const err = new Error("You must be logged in to create an issue");
 				err.status = 403;
 
 				next(err);
@@ -50,24 +51,25 @@ router.route('/')
 			IssuesStore.createIssue(
 				_.extend(
 					{
-						createdBy: req.user
+						"createdBy": req.user
 					},
 					req.body
 				)
 			).then(
-				issue => res.status(201).location(req.baseUrl + '/' + issue.id).json(processIssue(req, issue))
+				// eslint-disable-next-line no-magic-numbers
+				issue => res.status(201).location(req.baseUrl + "/" + issue.id).json(processIssue(req, issue))
 			).catch(ex => next(ex));
 		}
 	);
 
-router.route('/search')
+router.route("/search")
 	.get(
 		(req, res, next) => {
 			const searchArgs = req.query;
 
 			const options = {
-				currentUser: req.user,
-				includeUsers: req.query.includeUsers === "true"
+				"currentUser": req.user,
+				"includeUsers": req.query.includeUsers === "true"
 			};
 
 			delete searchArgs.include_users;
@@ -78,17 +80,17 @@ router.route('/search')
 		}
 	);
 
-router.route('/:issueID')
+router.route("/:issueID")
 	.get(
 		(req, res, next) => {
 			const options = {
-				currentUser: req.user,
-				includeUsers: req.query.includeUsers === "true"
+				"currentUser": req.user,
+				"includeUsers": req.query.includeUsers === "true"
 			};
 
 
 			IssuesStore.findByID(req.params.issueID, options).then(
-				issue => res.set('Last-Modified', issue.updated_at).json(processIssue(req, issue))
+				issue => res.set("Last-Modified", issue.updated_at).json(processIssue(req, issue))
 			).catch(ex => next(ex));
 		}
 	).post(
@@ -98,7 +100,7 @@ router.route('/:issueID')
 			issue.id = req.params.issueID;
 
 			const options = {
-				currentUser: req.user
+				"currentUser": req.user
 			};
 
 			IssuesStore.updateIssue(issue, options).then(
@@ -107,11 +109,11 @@ router.route('/:issueID')
 		}
 	);
 
-router.route('/:issueID/subscribe')
+router.route("/:issueID/subscribe")
 	.post(
 		(req, res, next) => {
 			if (!req.user) {
-				const err = new Error('You must be logged in to subscribe to an issue');
+				const err = new Error("You must be logged in to subscribe to an issue");
 				err.status = 403;
 
 				next(err);
@@ -119,8 +121,28 @@ router.route('/:issueID/subscribe')
 			}
 
 			IssuesStore.subscribeToIssue({
-				issueID: Number(req.params.issueID),
-				userID: req.user.id
+				"issueID": Number(req.params.issueID),
+				"userID": req.user.id
+			}).then(
+				issue => res.json(processIssue(req, issue))
+			).catch(ex => next(ex));
+		}
+	);
+
+router.route("/:issueID/unsubscribe")
+	.post(
+		(req, res, next) => {
+			if (!req.user) {
+				const err = new Error("You must be logged in to unsubscribe from an issue");
+				err.status = 403;
+
+				next(err);
+				return;
+			}
+
+			IssuesStore.unsubscribeFromIssue({
+				"issueID": Number(req.params.issueID),
+				"userID": req.user.id
 			}).then(
 				issue => res.json(processIssue(req, issue))
 			).catch(ex => next(ex));

@@ -14,11 +14,11 @@ export default class IssueUtils {
 		options = options || {};
 
 		return $.ajax({
-			url: `/api/issues/${issueID}`,
-			dataType: "json",
-			type: "get",
-			data: {
-				includeUsers: options.includeUsers
+			"url": `/api/issues/${issueID}`,
+			"dataType": "json",
+			"type": "get",
+			"data": {
+				"includeUsers": options.includeUsers
 			}
 		}).then(
 			processResult
@@ -33,12 +33,12 @@ export default class IssueUtils {
 		options = options || {};
 
 		return $.ajax({
-			url: "/api/issues",
-			dataType: "json",
-			type: "get",
-			data: {
-				userid: userID,
-				includeUsers: options.includeUsers
+			"url": "/api/issues",
+			"dataType": "json",
+			"type": "get",
+			"data": {
+				"userid": userID,
+				"includeUsers": options.includeUsers
 			}
 		}).then(
 			results => results.map(processResult)
@@ -51,11 +51,11 @@ export default class IssueUtils {
 
 	static getUserIssues(userID) {
 		return $.ajax({
-			url: "/api/issues",
-			type: "get",
-			dataType: "json",
-			data: {
-				userid: userID
+			"url": "/api/issues",
+			"type": "get",
+			"dataType": "json",
+			"data": {
+				"userid": userID
 			}
 		}).then(
 			results => results.map(processResult)
@@ -68,22 +68,33 @@ export default class IssueUtils {
 
 	static subscribeToIssue(issue) {
 		return $.ajax({
-			url: `/api/issues/${issue.id}/subscribe`,
-			type: "post"
+			"url": `/api/issues/${issue.id}/subscribe`,
+			"type": "post"
 		}).catch(
 			(jqXHR, textStatus) => {
 				throw new Error(textStatus);
 			}
-		)
+		);
+	}
+
+	static unsubscribeFromIssue(issue) {
+		return $.ajax({
+			"url": `/api/issues/${issue.id}/unsubscribe`,
+			"type": "post"
+		}).catch(
+			(jqXHR, textStatus) => {
+				throw new Error(textStatus);
+			}
+		);
 	}
 
 	static createIssue(issue) {
 		return $.ajax({
-			url: "/api/issues",
-			type: "post",
-			dataType: "json",
-			contentType: "application/json",
-			data: JSON.stringify(issue)
+			"url": "/api/issues",
+			"type": "post",
+			"dataType": "json",
+			"contentType": "application/json",
+			"data": JSON.stringify(issue)
 		}).then(
 			processResult
 		).catch(
@@ -95,11 +106,11 @@ export default class IssueUtils {
 
 	static editIssue(issue) {
 		return $.ajax({
-			url: `/api/issues/${issue.id}`,
-			type: "post",
-			dataType: "json",
-			contentType: "application/json",
-			data: JSON.stringify(_.omit(issue, ['id']))
+			"url": `/api/issues/${issue.id}`,
+			"type": "post",
+			"dataType": "json",
+			"contentType": "application/json",
+			"data": JSON.stringify(_.omit(issue, ["id"]))
 		}).then(
 			processResult
 		).catch(
@@ -119,22 +130,22 @@ export default class IssueUtils {
 
 	static searchIssues(options) {
 		return $.ajax({
-			url: "/api/issues/search",
-			type: "get",
-			dataType: "json",
-			data: options
+			"url": "/api/issues/search",
+			"type": "get",
+			"dataType": "json",
+			"data": options
 		}).then(
 			results => results.map(processResult)
 		).catch(
 			(jqXHR, textStatus) => {
 				throw new Error(textStatus);
 			}
-		)
+		);
 	}
 
 	static CATEGORY_ICON_MAP = {
-		SocialJustice: 'gavel',
-		CriminalJustice: 'gavel',
-		Environment: 'leaf'
+		"SocialJustice": "gavel",
+		"CriminalJustice": "gavel",
+		"Environment": "leaf"
 	}
 }

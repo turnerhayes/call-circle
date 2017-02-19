@@ -7,6 +7,10 @@ import Categories from "../../../../server/persistence/categories";
 import "search.less";
 
 class SearchResult extends React.Component {
+	static propTypes = {
+		"result": React.PropTypes.object
+	}
+
 	render() {
 		return (
 			<li className="search-result">
@@ -20,8 +24,15 @@ class SearchResult extends React.Component {
 }
 
 export default class IssueSearch extends React.Component {
+	static propTypes = {
+		"search": React.PropTypes.shape({
+			"query": React.PropTypes.string,
+			"category": React.PropTypes.string
+		})
+	}
+
 	state = {
-		searchResults: []
+		"searchResults": []
 	}
 
 	componentDidMount() {
@@ -53,7 +64,7 @@ export default class IssueSearch extends React.Component {
 		}
 
 		IssueUtils.searchIssues(formData).then(
-			issues => this.setState({searchResults: issues})
+			issues => this.setState({"searchResults": issues})
 		);
 	}
 
@@ -61,7 +72,7 @@ export default class IssueSearch extends React.Component {
 		event.preventDefault();
 
 		this.performSearch({
-			pushState: true
+			"pushState": true
 		});
 	}
 

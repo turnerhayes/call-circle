@@ -4,18 +4,18 @@ import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 
 class SiteAdmin extends React.Component {
 	state = {
-		selectedTabIndex: 1
+		"selectedTabIndex": 0
 	}
 
-	handleTabSelect(index, last) {
-		this.setState({selectedTabIndex: index});
+	handleTabSelect = index => {
+		this.setState({"selectedTabIndex": index});
 	}
 
 	render() {
 		return (
 			<div>
 				<Tabs
-					onSelect={(index, last) => this.handleTabSelect(index, last)}
+					onSelect={this.handleTabSelect}
 					selectedIndex={this.state.selectedTabIndex}
 				>
 					<TabList>

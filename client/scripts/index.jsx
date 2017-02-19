@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom";
+import React from "react";
 import { Router, Route, browserHistory, IndexRoute } from "react-router";
 import UserUtils from "./utils/user";
 import App from "./components/App";
@@ -35,7 +36,7 @@ ReactDOM.render(
 			<Route
 				name="Groups"
 				path="/groups"
-				component={() => <Groups groups={[{name: "foo"}]} />} />
+				component={() => <Groups groups={[{"name": "foo"}]} />} />
 			<Route name="Issues" path="/issues">
 				<IndexRoute
 					component={() => <Issues user={UserUtils.currentUser} />} />
@@ -53,7 +54,7 @@ ReactDOM.render(
 					name="View Issue"
 					staticName={true}
 					path=":issueID"
-					component={props => <IssueDetails issueID={props.params.issueID} />} />
+					component={props => <IssueDetails issueID={parseInt(props.params.issueID, 10)} />} />
 				<Route
 					name="Edit Issue"
 					staticName={true}

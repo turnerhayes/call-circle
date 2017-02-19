@@ -2,8 +2,12 @@ import React from "react";
 import { Link, withRouter } from "react-router";
 
 class UserInformation extends React.Component {
+	static propTypes = {
+		"user": React.PropTypes.object.isRequired
+	}
+
 	confirmLogout() {
-		if (window.confirm('Are you sure you want to log out?')) {
+		if (window.confirm("Are you sure you want to log out?")) {
 			document.location.href = "/logout";
 		}
 	}

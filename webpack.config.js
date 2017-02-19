@@ -1,13 +1,12 @@
-const _ = require('lodash');
-const path = require('path');
-const fs = require('fs');
-const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const debug = require('debug')('call-circle:webpack');
-const Config = require('./lib/config');
+const _ = require("lodash");
+const path = require("path");
+const fs = require("fs");
+const webpack = require("webpack");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const Config = require("./lib/config");
 
 
-const pagesDir = path.join(__dirname, 'client', 'scripts', 'pages');
+const pagesDir = path.join(__dirname, "client", "scripts", "pages");
 
 const entries = {};
 
@@ -17,82 +16,81 @@ _.each(
 	fs.readdirSync(pagesDir),
 	file => {
 		if (jsxFilenameRegex.test(file)) {
-			entries[file.replace(jsxFilenameRegex, '')] = [
+			entries[file.replace(jsxFilenameRegex, "")] = [
 				path.join(pagesDir, file)
-			]
+			];
 		}
 	}
 );
 
 module.exports = {
-	// entry: entries,
-	entry: './client/scripts/index.jsx',
+	"entry": "./client/scripts/index.jsx",
 
-	output: {
-		path: Config.paths.dist,
-		publicPath: '/static/',
-		filename: 'js/bundle.js'
+	"output": {
+		"path": Config.paths.dist,
+		"publicPath": "/static/",
+		"filename": "js/bundle.js"
 	},
 
-	module: {
-		loaders: [
+	"module": {
+		"loaders": [
 			{
-				test: jsxFilenameRegex,
-				exclude: /node_modules/,
-				loader: 'babel-loader'
+				"test": jsxFilenameRegex,
+				"exclude": /node_modules/,
+				"loaders": ["babel-loader", "eslint-loader"]
 			},
 
 			{
-				test: /\.less$/,
-				loader: ExtractTextPlugin.extract(
-					'css-loader?sourceMap!postcss-loader!less-loader?' +
+				"test": /\.less$/,
+				"loader": ExtractTextPlugin.extract(
+					"css-loader?sourceMap!postcss-loader!less-loader?" +
 						JSON.stringify({
-							sourceMap: true,
-							modifyVars: {
-								'fa-font-path': '"/static/fonts/font-awesome/"'
+							"sourceMap": true,
+							"modifyVars": {
+								"fa-font-path": '"/static/fonts/font-awesome/"'
 							}
 						}),
 					{
-						publicPath: '/static/css'
+						"publicPath": "/static/css"
 					}
 				)
 			},
 
 			{
-				test: /\.css$/,
-				loader: ExtractTextPlugin.extract('css-loader?sourceMap!postcss', {
-					publicPath: '/static/css'
+				"test": /\.css$/,
+				"loader": ExtractTextPlugin.extract("css-loader?sourceMap!postcss", {
+					"publicPath": "/static/css"
 				})
 			},
 
 			{
-				test: /\.json$/,
-				loader: 'json-loader'
+				"test": /\.json$/,
+				"loader": "json-loader"
 			},
 
 			{
-				test: /\.woff(2)?(\?.*)?$/,
-				loader: 'url-loader?limit=10000&mimetype=application/font-woff'
+				"test": /\.woff(2)?(\?.*)?$/,
+				"loader": "url-loader?limit=10000&mimetype=application/font-woff"
 			},
 
 			{
-				test: /\.ttf(\?.*)?$/,
-				loader: 'file-loader'
+				"test": /\.ttf(\?.*)?$/,
+				"loader": "file-loader"
 			},
 
 			{
-				test: /\.eot(\?.*)?$/,
-				loader: 'file-loader'
+				"test": /\.eot(\?.*)?$/,
+				"loader": "file-loader"
 			},
 
 			{
-				test: /\.svg(\?.*)?$/,
-				loader: 'file-loader'
+				"test": /\.svg(\?.*)?$/,
+				"loader": "file-loader"
 			}
 		]
 	},
 
-	plugins: [
+	"plugins": [
 		new webpack.ProvidePlugin({
 			"React": "react"
 		}),
@@ -106,27 +104,27 @@ module.exports = {
 			"IS_DEVELOPMENT": JSON.stringify(Config.app.isDevelopment),
 		}),
 
-        new ExtractTextPlugin('css/bundle.css', {
-            allChunks: true
+        new ExtractTextPlugin("css/bundle.css", {
+            "allChunks": true
         })
 	],
 
-	resolve: {
-		extensions: ['', '.js', '.jsx', '.json', '.less', '.css'],
-		root: [
+	"resolve": {
+		"extensions": ["", ".js", ".jsx", ".json", ".less", ".css"],
+		"root": [
 			Config.paths.client,
-			path.join(Config.paths.client, 'styles')
+			path.join(Config.paths.client, "styles")
 		]
 	},
 
-	node: {
-		Buffer: true,
-		fs: 'empty',
-		assert: true,
-		events: true,
-		process: true
+	"node": {
+		"Buffer": true,
+		"fs": "empty",
+		"assert": true,
+		"events": true,
+		"process": true
 	},
 
-	devtool: "source-map"
+	"devtool": "source-map"
 	// devtool: "cheap-eval-source-map"
 };

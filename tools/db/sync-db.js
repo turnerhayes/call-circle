@@ -2,19 +2,18 @@
 
 "use strict";
 
-require('dotenv').config();
-const _ = require('lodash');
-const path = require('path');
-const debug = require('debug')('ccircle:tools:db-sync');
-const DB = require('../../server/persistence/database-connection');
-const Models = require('../../server/persistence/models');
+require("dotenv").config();
+const _ = require("lodash");
+const debug = require("debug")("ccircle:tools:db-sync");
+const DB = require("../../server/persistence/database-connection");
+require("../../server/persistence/models");
 
-const program = require('commander')
-	.version(require('../../package.json').version)
-	.option('-f, --force', 'Force drop tables')
+const program = require("commander")
+	.version(require("../../package.json").version)
+	.option("-f, --force", "Force drop tables")
 	.option(
-		'-m, --model <modelName>',
-		'Model(s) to sync (if not specified, syncs all)',
+		"-m, --model <modelName>",
+		"Model(s) to sync (if not specified, syncs all)",
 		(modelName, modelsToSync) => {
 			modelsToSync.push(modelName.toLowerCase());
 			return modelsToSync;
@@ -24,8 +23,8 @@ const program = require('commander')
 	.parse(process.argv);
 
 const SYNC_OPTIONS = {
-	force: program.force,
-	logging: debug
+	"force": program.force,
+	"logging": debug
 };
 
 const modelsToSync = program.model;
@@ -46,7 +45,7 @@ if (modelsToSync.length > 0) {
 	);
 
 	if (missingModels.length > 0) {
-		throw new Error('Cannot find models: ' + missingModels.join(','));
+		throw new Error("Cannot find models: " + missingModels.join(","));
 	}
 
 	syncPromise = DB.Promise.all(
@@ -59,23 +58,23 @@ if (modelsToSync.length > 0) {
 	);
 }
 else {
-	syncPromise = DB.sync(SYNC_OPTIONS)
+	syncPromise = DB.sync(SYNC_OPTIONS);
 }
 
 const tablesText = (
 	modelsToSync.length === 0 ?
-		'all tables' :
-		modelsToSync.join(', ') + ' tables'
+		"all tables" :
+		modelsToSync.join(", ") + " tables"
 );
 
-debug('Syncing ' + tablesText);
+debug("Syncing " + tablesText);
 
 syncPromise.then(
 	() => {
-		debug('Synced ' + tablesText);
+		debug("Synced " + tablesText);
 	}
 ).catch(
-	err => { throw err }
+	err => { throw err; }
 ).finally(
 	() => DB.close()
 );

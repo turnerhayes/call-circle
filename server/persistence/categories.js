@@ -1,13 +1,13 @@
 "use strict";
 
 exports = module.exports = {
-	SocialJustice: {
-		name: 'Social Justice',
+	"SocialJustice": {
+		"name": "Social Justice",
 	},
-	CriminalJustice: {
-		name: 'Criminal Justice'
+	"CriminalJustice": {
+		"name": "Criminal Justice"
 	},
-	Environment: {
-		name: 'Environment'
+	"Environment": {
+		"name": "Environment"
 	}
 };

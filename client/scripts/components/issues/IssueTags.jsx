@@ -5,12 +5,12 @@ import "react-tagsinput/react-tagsinput.css";
 
 export default class IssueTags extends React.Component {
 	static propTypes = {
-		onTagsChange: React.PropTypes.func.required,
-		tags: React.PropTypes.array
+		"onTagsChange": React.PropTypes.func.required,
+		"tags": React.PropTypes.array
 	}
 
 	static defaultProps = {
-		tags: []
+		"tags": []
 	}
 
 	handleChangeTags = tags => {
@@ -21,16 +21,18 @@ export default class IssueTags extends React.Component {
 		const handleChangeTags = this.handleChangeTags.bind(this);
 
 		function renderAutocompleteInput(props) {
-			const { addTag, ...inputProps } = props;
+			delete props.addTag;
 
-			const suggestions = ['foo', 'bar', 'bax'];
+			const suggestions = ["foo", "bar", "bax"];
 
-			inputProps.onChange = (event, {method}) => {
-				if (method === 'enter') {
+			const onChange = props.onChange;
+
+			props.onChange = (event, {method}) => {
+				if (method === "enter") {
 					event.preventDefault();
 				}
 				else {
-					props.onChange(event);
+					onChange(event);
 				}
 			};
 
@@ -38,7 +40,7 @@ export default class IssueTags extends React.Component {
 				<Autosuggest
 					ref={props.ref}
 					suggestions={suggestions}
-					inputProps={inputProps}
+					inputProps={props}
 					getSuggestionValue={suggestion => suggestion}
 					renderSuggestion={suggestion => (<span>{suggestion}</span>)}
 					onSuggestionsClearRequested={() => handleChangeTags([])}

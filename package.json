@@ -4,9 +4,11 @@
   "description": "",
   "scripts": {
     "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
-    "start:prod": "webpack && node ./server/bin/www.js",
+    "start:prod": "npm run build-static && node ./server/bin/www.js",
     "start:dev": "DEBUG=call-circle:* nodemon ./server/bin/www.js",
-    "postinstall": "DEBUG=ccircle:* node ./tools/db/sync-db.js"
+    "build-static": "webpack",
+    "postinstall": "DEBUG=ccircle:* node ./tools/db/sync-db.js",
+    "lint": "eslint --ext .jsx --ext .js .; exit 0"
   },
   "author": "Turner Hayes <dev@turnerhayes.com>",
   "license": "ISC",
@@ -56,18 +58,23 @@
     "react-tabs": "^0.8.2",
     "react-tagsinput": "^3.14.0",
     "sequelize": "^3.29.0",
+    "serve-favicon": "^2.3.2",
     "spdy": "^3.4.4",
-    "static-favicon": "~1.0.0",
     "url-loader": "^0.5.7",
     "webpack": "^1.14.0",
     "webpack-dev-middleware": "^1.9.0",
-    "webpack-hot-middleware": "^2.15.0"
+    "webpack-hot-middleware": "^2.15.0",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
     "commander": "^2.9.0",
+    "eslint": "^3.15.0",
+    "eslint-loader": "^1.6.1",
+    "eslint-plugin-react": "^6.10.0",
     "react-hot-loader": "^3.0.0-beta.6",
     "request": "^2.79.0",
     "request-promise": "^4.1.1",

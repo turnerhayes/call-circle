@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom";
+import React from "react";
 import App from "../components/App";
 import GroupsManagement from "../components/groups/Management";
 import UserUtils from "../utils/user";
@@ -9,5 +10,5 @@ ReactDOM.render(
 			user={UserUtils.currentUser}
 		/>
 	</App>,
-	document.getElementById('app')
+	document.getElementById("app")
 );

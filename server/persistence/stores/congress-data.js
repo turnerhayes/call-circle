@@ -10,18 +10,18 @@ const API_VERSION = 1;
 
 const LATEST_CONGRESS_NUMBER = 115;
 
-const CACHE_DIRECTORY = path.resolve(__dirname, 'cache');
+const CACHE_DIRECTORY = path.resolve(__dirname, "cache");
 
 const REQUEST_OPTIONS = {
-	transform: JSON.parse.bind(JSON),
-	headers: {
-		'X-API-Key': Config.thirdParty.proPublica.apiKey
+	"transform": JSON.parse.bind(JSON),
+	"headers": {
+		"X-API-Key": Config.thirdParty.proPublica.apiKey
 	}
 };
 
 function getAPIURL(chamber, congressNumber) {
-	return 'https://api.propublica.org/congress/v' + API_VERSION + '/' +
-		congressNumber + '/' + chamber + '/members.json';
+	return "https://api.propublica.org/congress/v" + API_VERSION + "/" +
+		congressNumber + "/" + chamber + "/members.json";
 }
 
 exports = module.exports = class CongressDataStore {
@@ -36,7 +36,7 @@ exports = module.exports = class CongressDataStore {
 			cacheContents => JSON.parse(cacheContents)
 		).catch(
 			() => request.get(
-				getAPIURL('house', options.congress),
+				getAPIURL("house", options.congress),
 				REQUEST_OPTIONS
 			).then(
 				response =>  {
@@ -60,7 +60,7 @@ exports = module.exports = class CongressDataStore {
 			cacheContents => JSON.parse(cacheContents)
 		).catch(
 			() => request.get(
-				getAPIURL('senate', options.congress),
+				getAPIURL("senate", options.congress),
 				REQUEST_OPTIONS
 			).then(
 				response => {
@@ -91,4 +91,4 @@ exports = module.exports = class CongressDataStore {
 			)
 		);
 	}
-}
+};

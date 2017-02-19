@@ -5,7 +5,7 @@ let _currentUser;
 class UserUtils {
 	static get currentUser() {
 		if (!_currentUser) {
-			_currentUser = $(document.body).data('user');
+			_currentUser = $(document.body).data("user");
 		}
 
 		return _currentUser;

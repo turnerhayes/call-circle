@@ -1,32 +1,34 @@
-const express = require('express');
-const passport = require('passport');
-const Config = require('../../lib/config');
+"use strict";
+
+const express = require("express");
+const passport = require("passport");
+const Config = require("../../lib/config");
 
 const router = express.Router();
 
-router.route('/auth/fb')
+router.route("/auth/fb")
 	.get(
-		passport.authenticate('facebook', { "scope": Config.auth.facebook.scope || [] })
+		passport.authenticate("facebook", { "scope": Config.auth.facebook.scope || [] })
 	);
 
 router.route(Config.auth.facebook.callbackURL)
 	.get(
 		passport.authenticate(
-			'facebook',
+			"facebook",
 			{
-				successRedirect: '/',
-				failureRedirect: '/',
-				failureFlash: true,
+				"successRedirect": "/",
+				"failureRedirect": "/",
+				"failureFlash": true,
 			}
 		)
 	);
 
-router.route('/logout')
+router.route("/logout")
 	.get(
 		(req, res) => {
 			req.logout();
-			res.redirect('/');
+			res.redirect("/");
 		}
-	)
+	);
 
 module.exports = router;
