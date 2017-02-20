@@ -44,13 +44,11 @@ class IssueForm extends React.Component {
 
 	static propTypes = {
 		"issue": React.PropTypes.object,
-		"router": React.PropTypes.object.isRequired,
-		"isNew": React.PropTypes.bool
+		"router": React.PropTypes.object.isRequired
 	}
 
 	static defaultProps = {
-		"issue": null,
-		"isNew": false
+		"issue": null
 	}
 
 	state = Object.assign(getState(this.props.issue), {
@@ -92,7 +90,7 @@ class IssueForm extends React.Component {
 	render() {
 		return (
 			<form
-				action={`/issues${this.props.isNew ? "" : "/" + this.props.issue.id}`}
+				action={`/issues${this.props.issue ? "/" + this.props.issue.id : ""}`}
 				method="post"
 				encType="application/x-www-form-urlencoded"
 				onSubmit={event => this.handleFormSubmit(event)}
@@ -178,7 +176,7 @@ class IssueForm extends React.Component {
 				<button
 					type="submit"
 					className="btn btn-primary"
-				>{this.props.isNew ? "Add" : "Save"}</button>
+				>{this.props.issue ? "Save" : "Add"}</button>
 			</form>
 		);
 	}

@@ -7,7 +7,7 @@
     "start:prod": "npm run build-static && node ./server/bin/www.js",
     "start:dev": "DEBUG=call-circle:* nodemon ./server/bin/www.js",
     "build-static": "webpack",
-    "postinstall": "DEBUG=ccircle:* node ./tools/db/sync-db.js",
+    "postinstall": "DEBUG=ccircle:* node ./tools/db/init-db.js",
     "lint": "eslint --ext .jsx --ext .js .; exit 0"
   },
   "author": "Turner Hayes <dev@turnerhayes.com>",

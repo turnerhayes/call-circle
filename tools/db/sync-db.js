@@ -9,7 +9,6 @@ const DB = require("../../server/persistence/database-connection");
 require("../../server/persistence/models");
 
 const program = require("commander")
-	.version(require("../../package.json").version)
 	.option("-f, --force", "Force drop tables")
 	.option(
 		"-m, --model <modelName>",
@@ -28,7 +27,6 @@ const SYNC_OPTIONS = {
 };
 
 const modelsToSync = program.model;
-
 
 let syncPromise;
 
