@@ -29,7 +29,17 @@ if (Config.logging.sql.file !== false) {
 	};
 }
 
+const errorLogger = new winston.Logger({
+	"level": "error",
+	"transports": [
+		new winston.transports.Console({
+			"timestamp": true
+		})
+	]
+});
+
 exports = module.exports = {
 	"http": morgan("dev"),
-	"sql": sqlLogger
+	"sql": sqlLogger,
+	"errors": errorLogger
 };

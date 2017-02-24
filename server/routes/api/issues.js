@@ -10,9 +10,8 @@ function processIssue(req, issue) {
 	const issueJSON = issue.toJSON();
 	const issueUsers = issue.users;
 
-	if (req.user && _.size(issueUsers) > 0) {
-		issueJSON.userIsSubscribed = issue.isUserSubscribed(req.user);
-	}
+	issueJSON.userIsSubscribed = req.user && _.size(issueUsers) > 0 &&
+		issue.isUserSubscribed(req.user);
 
 	return issueJSON;
 }
@@ -124,7 +123,9 @@ router.route("/:issueID/subscribe")
 				"issueID": Number(req.params.issueID),
 				"userID": req.user.id
 			}).then(
-				issue => res.json(processIssue(req, issue))
+				() => res.json({
+					"success": true
+				})
 			).catch(ex => next(ex));
 		}
 	);
@@ -144,7 +145,9 @@ router.route("/:issueID/unsubscribe")
 				"issueID": Number(req.params.issueID),
 				"userID": req.user.id
 			}).then(
-				issue => res.json(processIssue(req, issue))
+				() => res.json({
+					"success": true
+				})
 			).catch(ex => next(ex));
 		}
 	);

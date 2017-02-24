@@ -1,21 +1,17 @@
-export default class IssueModel {
-	constructor(args) {
-		Object.defineProperties(this, {
-			"id": {
-				"enumerable": true,
-				"writable": false,
-				"value": args.id
-			},
-			"name": {
-				"enumerable": true,
-				"configurable": true,
-				"value": args.name
-			},
-			"profilePhotoURL": {
-				"enumerable": true,
-				"configurable": true,
-				"value": args.profilePhotoURL
-			}
-		});
+import BaseModel from "./base-model";
+
+export default BaseModel.createModel({
+	"id": {
+		"isReadOnly": true,
+		"type": BaseModel.Types.Integer
+	},
+
+	"name": {},
+
+	"description": {},
+
+	"deadline": {
+		"type": BaseModel.Types.Date,
+		"isRequired": true
 	}
-}
+});

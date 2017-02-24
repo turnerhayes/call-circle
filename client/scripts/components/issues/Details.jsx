@@ -15,7 +15,8 @@ class IssueDetails extends React.Component {
 
 	state = {
 		"issue": null,
-		"issueLoadError": null
+		"issueLoadError": null,
+		"canToggleSubscription": true
 	}
 
 	componentWillMount() {
@@ -28,12 +29,24 @@ class IssueDetails extends React.Component {
 	}
 
 	handleSubscribeButtonClick = () => {
+		const isSubscribing = !this.state.issue.userIsSubscribed;
+		this.setState({"canToggleSubscription": false});
+
 		(
-			this.state.issue.userIsSubscribed ?
-				IssueUtils.unsubscribeFromIssue(this.state.issue) :
-				IssueUtils.subscribeToIssue(this.state.issue)
+			isSubscribing ?
+				IssueUtils.subscribeToIssue(this.state.issue) :
+				IssueUtils.unsubscribeFromIssue(this.state.issue)
 		).then(
-			issue => this.setState({issue})
+			() => {
+				const issue = this.state.issue;
+
+				issue.userIsSubscribed = isSubscribing;
+
+				this.setState({
+					issue,
+					"canToggleSubscription": true
+				});
+			}
 		);
 	}
 
@@ -72,6 +85,7 @@ class IssueDetails extends React.Component {
 					<div className="issue-actions">
 						<button
 							className={`btn fa fa-${subscribeButtonIcon} fa-2x`}
+							disabled={!this.state.canToggleSubscription}
 							aria-label={subscribeButtonLabel}
 							title={subscribeButtonLabel}
 							onClick={this.handleSubscribeButtonClick}

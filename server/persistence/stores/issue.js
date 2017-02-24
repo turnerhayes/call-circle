@@ -4,6 +4,7 @@ const _         = require("lodash");
 const assert    = require("assert");
 const Sequelize = require("sequelize");
 const models    = require("../models");
+const Loggers   = require("../../lib/loggers");
 
 const IssueModel = models.Issue;
 
@@ -29,6 +30,12 @@ const queryOptions = {
 };
 
 class IssuesStore {
+	static reload(issue) {
+		assert(issue, 'Must provide an issue model instance to "reload"');
+
+		return issue.reload();
+	}
+
 	static findByID(id, options) {
 		options = options || {};
 
@@ -45,8 +52,6 @@ class IssuesStore {
 		else if (options.currentUser) {
 			scopes.push(getCurrentUserScope(options.currentUser));
 		}
-
-		console.log("scopes:", JSON.stringify(scopes, null, "  "));
 
 		return IssueModel.scope(...scopes).findById(
 			id,
@@ -128,7 +133,9 @@ class IssuesStore {
 				"currentUser": userID
 			}
 		).then(
-			issue => issue.addUser(userID).then(() => issue)
+			issue => issue.addUser(userID).then(() => IssuesStore.reload(issue))
+		).catch(
+			err => Loggers.error.error(`Error subscribing user ${userID} to issue ${issueID}: ${err.message}`)
 		);
 	}
 
@@ -147,7 +154,9 @@ class IssuesStore {
 				"currentUser": userID
 			}
 		).then(
-			issue => issue.removeUser(userID).then(() => issue)
+			issue => issue.removeUser(userID).then(() => ({"userIsSubscribed": false}))
+		).catch(
+			err => Loggers.error.error(`Error unsubscribing user ${userID} from issue ${issueID}: ${err.message}`)
 		);
 	}
 
