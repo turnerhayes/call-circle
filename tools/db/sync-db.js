@@ -14,7 +14,7 @@ const program = require("commander")
 		"-m, --model <modelName>",
 		"Model(s) to sync (if not specified, syncs all)",
 		(modelName, modelsToSync) => {
-			modelsToSync.push(modelName.toLowerCase());
+			modelsToSync.push(modelName);
 			return modelsToSync;
 		},
 		[]
