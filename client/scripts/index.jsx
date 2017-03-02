@@ -59,7 +59,7 @@ ReactDOM.render(
 					name="Edit Issue"
 					staticName={true}
 					path="edit/:issueID"
-					component={props => <EditIssue issueID={props.params.issueID} />} />
+					component={props => <EditIssue issueID={parseInt(props.params.issueID, 10)} />} />
 			</Route>
 		</Route>
 	</Router>,

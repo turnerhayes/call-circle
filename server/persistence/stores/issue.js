@@ -8,54 +8,103 @@ const Loggers   = require("../../lib/loggers");
 
 const IssueModel = models.Issue;
 
-function getCurrentUserScope(currentUser) {
-	return {
-		"method": [
-			"withUsers",
-			false,
-			{
-				"id": currentUser.id
-			}
-		]
-	};
-}
+function addUserInclude(options) {
+	options = options || {};
+	
+	let includes = options.includes;
 
-const queryOptions = {
-	"include": [
-		{
-			"model": models.User,
-			"as": "createdBy"
-		}
-	]
-};
-
-class IssuesStore {
-	static reload(issue) {
-		assert(issue, 'Must provide an issue model instance to "reload"');
-
-		return issue.reload();
+	if (!includes) {
+		includes = [];
 	}
 
+	includes.push({
+		"model": models.User,
+		"where": options.where,
+		"required": options.required
+	});
+
+	return includes;
+}
+
+function addCurrentUserInclude(options) {
+	options = options || {};
+	
+	let includes = options.includes;
+
+	if (!includes) {
+		includes = [];
+	}
+
+	return addUserInclude({
+		"includes": includes,
+		"where": {
+			// currentUser can be either a user ID or a user Instance
+			"id": _.isNumber(options.currentUser) ? options.currentUser : options.currentUser.id
+		},
+		"required": false
+	});
+}
+
+function addImageInclude(options) {
+	options = options || {};
+	
+	let includes = options.includes;
+
+	if (!includes) {
+		includes = [];
+	}
+
+	includes.push({
+		"model": models.IssueImage,
+		"where": options.images.where,
+		"required": options.images.required
+	});
+
+	return includes;
+}
+
+function addCreatorInclude(options) {
+	options = options || {};
+
+	let includes = options.includes;
+
+	if (!includes) {
+		includes = [];
+	}
+
+	includes.push({
+		"model": models.User,
+		"as": "createdBy"
+	});
+
+	return includes;
+}
+
+class IssuesStore {
 	static findByID(id, options) {
 		options = options || {};
 
-		let scopes = ["defaultScope"];
+		let scopes = ["defaultScope", "not-deleted"];
+
+		const includes = [];
+
+		addCreatorInclude({ "includes": includes });
 
 		if (options.includeUsers) {
-			scopes.push({
-				"method": [
-					"withUsers",
-					false
-				]
-			});
+			addUserInclude({ "includes": includes });
 		}
 		else if (options.currentUser) {
-			scopes.push(getCurrentUserScope(options.currentUser));
+			addCurrentUserInclude({
+				"includes": includes,
+				"currentUser": options.currentUser
+			});
 		}
 
 		return IssueModel.scope(...scopes).findById(
 			id,
-			queryOptions
+			{
+				"include": includes
+			}
 		).then(
 			issue => issue || Sequelize.Promise.reject(null)
 		);
@@ -64,7 +113,7 @@ class IssuesStore {
 	static findByUserID(userID, options) {
 		options = options || {};
 
-		const scopes = ["defaultScope"];
+		const scopes = ["defaultScope", "not-deleted"];
 
 		if (options.expiredOnly) {
 			scopes.push("expired");
@@ -73,21 +122,31 @@ class IssuesStore {
 			scopes.push("inProgress");
 		}
 
-		scopes.push({
-			"method": [
-				"withUsers",
-				// If we want to include all users, make this include not required. Otherwise,
-				// results should require the user (and optionally the current user)
-				!options.includeUsers,
-				{
+		const includes = [];
+
+		addCreatorInclude({ "includes": includes });
+
+		if (options.includeUsers) {
+			addUserInclude({
+				"includes": includes,
+				"where": {
 					"id": {
 						"$in": [userID].concat(options.currentUser ? [options.currentUser.id] : [])
 					}
-				}
-			]
-		});
+				},
+				// If we want to include all users, make this include not required. Otherwise,
+				// results should require the user (and optionally the current user)
+				"required": !options.includeUsers
+			});
+		}
 
-		return IssueModel.scope(...scopes).findAll(queryOptions);
+		if (options.includeImages) {
+			addImageInclude({
+				"includes": includes
+			});
+		}
+
+		return IssueModel.scope(...scopes).findAll({ "include": includes });
 	}
 
 	static createIssue(issue) {
@@ -121,11 +180,9 @@ class IssuesStore {
 	static subscribeToIssue(options) {
 		options = options || {};
 		const { issueID, userID } = options;
-		delete options.issueID;
-		delete options.userID;
 
-		assert(issueID, '"issueID" parameter in "IssuesStore.unsubscribeFromIssue" is missing');
-		assert(userID, '"userID" parameter in "IssuesStore.unsubscribeFromIssue" is missing');
+		assert(issueID, '"issueID" parameter in "IssuesStore.subscribeToIssue" is missing');
+		assert(userID, '"userID" parameter in "IssuesStore.subscribeToIssue" is missing');
 
 		return IssuesStore.findByID(
 			issueID,
@@ -133,17 +190,25 @@ class IssuesStore {
 				"currentUser": userID
 			}
 		).then(
-			issue => issue.addUser(userID).then(() => IssuesStore.reload(issue))
+			issue => issue.addUser(userID).then(() => ({"userIsSubscribed": true}))
 		).catch(
-			err => Loggers.error.error(`Error subscribing user ${userID} to issue ${issueID}: ${err.message}`)
+			err => {
+				let msg;
+				if (err === null) {
+					msg = `Issue ${issueID} was not found`;
+				}
+				else {
+					msg = err.msg;
+				}
+
+				Loggers.errors.error(`Error subscribing user ${userID} to issue ${issueID}: ${msg}`);
+			}
 		);
 	}
 
 	static unsubscribeFromIssue(options) {
 		options = options || {};
 		const { issueID, userID } = options;
-		delete options.issueID;
-		delete options.userID;
 
 		assert(issueID, '"issueID" parameter in "IssuesStore.unsubscribeFromIssue" is missing');
 		assert(userID, '"userID" parameter in "IssuesStore.unsubscribeFromIssue" is missing');
@@ -156,7 +221,17 @@ class IssuesStore {
 		).then(
 			issue => issue.removeUser(userID).then(() => ({"userIsSubscribed": false}))
 		).catch(
-			err => Loggers.error.error(`Error unsubscribing user ${userID} from issue ${issueID}: ${err.message}`)
+			err => {
+				let msg;
+				if (err === null) {
+					msg = `Issue ${issueID} was not found`;
+				}
+				else {
+					msg = err.msg;
+				}
+
+				Loggers.errors.error(`Error unsubscribing user ${userID} from issue ${issueID}: ${msg}`);
+			}
 		);
 	}
 
@@ -164,13 +239,24 @@ class IssuesStore {
 		const where = {};
 		options = options || {};
 
-		const scopes = ["defaultScope"];
+		const scopes = ["defaultScope", "not-deleted"];
+
+		const includes = [];
+
+		addCreatorInclude({ "includes": includes });
 
 		if (options.includeUsers) {
-			scopes.push("withUsers");
+			addUserInclude({ "includes": includes });
 		}
 		else if (options.currentUser) {
-			scopes.push(getCurrentUserScope(options.currentUser));
+			addCurrentUserInclude({
+				"includes": includes,
+				"currentUser": options.currentUser
+			});
+		}
+
+		if (options.includeImages) {
+			addImageInclude({ "includes": includes });
 		}
 
 		if (searchArgs.query) {
@@ -198,14 +284,10 @@ class IssuesStore {
 			}
 		}
 
-		const opts = Object.assign(
-			{
-				"where": where
-			},
-			queryOptions
-		);
-
-		return IssueModel.scope(...scopes).findAll(opts);
+		return IssueModel.scope(...scopes).findAll({
+			"where": where,
+			"includes": includes
+		});
 	}
 }
 

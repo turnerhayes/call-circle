@@ -7,6 +7,7 @@ const Loggers            = require("./lib/loggers");
 // const favicon            = require("serve-favicon");
 const cookieParser       = require("cookie-parser");
 const bodyParser         = require("body-parser");
+const busboy             = require("connect-busboy");
 const handlebars         = require("handlebars");
 const hbs                = require("express-hbs");
 const pg                 = require("pg");
@@ -47,6 +48,7 @@ app.set("view engine", "hbs");
 app.use(Loggers.http);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
+app.use(busboy());
 app.use(cookieParser());
 
 // eslint-disable-next-line no-magic-numbers
@@ -164,9 +166,8 @@ app.use(function(err, req, res) {
 	};
 
 	// eslint-disable-next-line no-magic-numbers
-	if (Config.app.isDevelopment && err.status !== 404) {
-		// eslint-disable-next-line no-console
-		console.error(err);
+	if (err.status !== 404) {
+		Loggers.error.error(err);
 	}
 
 	res.format({

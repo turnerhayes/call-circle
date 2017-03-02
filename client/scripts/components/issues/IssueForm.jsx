@@ -2,6 +2,7 @@ import _ from "lodash";
 import React from "react";
 import { SingleDatePicker } from "react-dates";
 import { withRouter } from "react-router";
+import moment from "moment";
 import TextEditor from "../TextEditor";
 import IssueUtils from "../../utils/issue";
 import Categories from "../../../../server/persistence/categories";
@@ -80,9 +81,10 @@ class IssueForm extends React.Component {
 			dataValues.deadline = dataValues.deadline.toDate();
 		}
 
-		IssueUtils.saveIssue(dataValues).done(
+		IssueUtils.saveIssue(dataValues).then(
 			issue => this.props.router.push(`/issues/${issue.id}`)
 		).fail(
+			// eslint-disable-next-line no-console
 			err => console.error("Error saving issue: ", err)
 		);
 	}
@@ -146,7 +148,7 @@ class IssueForm extends React.Component {
 						className="form-control"
 						id={`${this.componentID}-deadline`}
 						onDateChange={deadline => this.setState({deadline})}
-						date={this.state.deadline}
+						date={this.state.deadline && moment(this.state.deadline)}
 						focused={this.state.isDeadlinePickerFocused}
 						onFocusChange={status => this.setState({"isDeadlinePickerFocused": status.focused})}
 						numberOfMonths={1}

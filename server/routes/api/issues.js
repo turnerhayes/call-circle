@@ -1,7 +1,12 @@
 "use strict";
 
 const _ = require("lodash");
+const Promise = require("bluebird");
+const fs = require("fs");
+const path = require("path");
+const mkdirp = Promise.promisify(require("mkdirp"));
 const express = require("express");
+const Config = require("../../../lib/config");
 const IssuesStore = require("../../persistence/stores/issue");
 
 const router = express.Router();
@@ -149,6 +154,82 @@ router.route("/:issueID/unsubscribe")
 					"success": true
 				})
 			).catch(ex => next(ex));
+		}
+	);
+
+router.route("/:issueID/images")
+	.post(
+		(req, res, next) => {
+			if (!req.user) {
+				const err = new Error("You must be logged in to upload an image for an issue");
+				err.status = 403;
+
+				next(err);
+				return;
+			}
+
+			if (req.busboy) {
+				IssuesStore.findByID(
+					req.params.issueID,
+					{
+						"currentUser": req.user
+					}
+				).then(
+					issue => {
+						// req.busboy.on("field", function(fieldname, value, valTruncated, keyTruncated) {
+						// 	console.log("on:field", keyTruncated);
+						// });
+						req.busboy.on(
+							"file",
+							(fieldName, file, filename, encoding, mimeType) => {
+								console.log("processing file ", filename);
+								const directory = path.join(
+									Config.uploads.images.storage.directory,
+									"issues",
+									req.params.issueID
+								);
+
+								mkdirp(directory).then(
+									() => {
+										const filePath = path.join(directory, req.user.id + path.extname(filename));
+										file.pipe(fs.createWriteStream(filePath));
+
+										req.busboy.on("finish", () => {
+											console.log("busboy finished");
+											issue.createImage({
+												"path": filePath,
+												"mimeType": mimeType
+											}).then(
+												() => res.send("file uploaded")
+											);
+										});
+									}
+								);
+
+
+							}
+						);
+
+						req.pipe(req.busboy);
+					}
+				).catch(
+					err => {
+						if (err === null) {
+							next();
+							return;
+						}
+
+						next(err);
+					}
+				);
+
+				return;
+			}
+
+			const err = new Error("Unable to handle file upload: busboy not available on request");
+			err.status = 500;
+
+			res.next(err);
 		}
 	);
 

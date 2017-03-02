@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, withRouter } from "react-router";
 import { markdown } from "markdown";
+import ImageUpload from "./ImageUpload";
 import IssueUtils from "../../utils/issue";
 import UserUtils from "../../utils/user";
 import Categories from "../../../../server/persistence/categories";
@@ -42,11 +43,10 @@ class IssueDetails extends React.Component {
 
 				issue.userIsSubscribed = isSubscribing;
 
-				this.setState({
-					issue,
-					"canToggleSubscription": true
-				});
+				this.setState({ issue });
 			}
+		).finally(
+			() => this.setState({ "canToggleSubscription": true })
 		);
 	}
 
@@ -109,6 +109,11 @@ class IssueDetails extends React.Component {
 				<p
 					className="description"
 					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.state.issue.description)}}
+				/>
+
+				<ImageUpload
+					className={this.state.issue.userIsSubscribed ? "" : "hidden"}
+					issue={this.state.issue}
 				/>
 			</section>
 		);

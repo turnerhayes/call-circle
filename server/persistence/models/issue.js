@@ -4,6 +4,7 @@ const _ = require("lodash");
 const Sequelize = require("sequelize");
 const DB = require("../database-connection");
 const UserModel = require("./user");
+const IssueImageModel = require("./issue-image");
 const Categories = require("../categories");
 
 const NAME_MAX_LENGTH = 1000;
@@ -42,9 +43,6 @@ const IssueModel = DB.define("issue",
 			"attributes": {
 				"exclude": ["created_by_id"]
 			},
-			"where": {
-				"deleted_at": null
-			},
 			"include": [
 				{
 					"model": UserModel,
@@ -53,6 +51,18 @@ const IssueModel = DB.define("issue",
 			]
 		},
 		"scopes": {
+			"not-deleted": {
+				"where": {
+					"deleted_at": null
+				}
+			},
+			"deleted": {	
+				"where": {
+					"deleted_at": {
+						"$ne": null
+					}
+				}
+			},
 			"inProgress": {
 				"where": {
 					"$or": [
@@ -73,17 +83,6 @@ const IssueModel = DB.define("issue",
 						"$lt": Sequelize.literal("CURRENT_TIMESTAMP")
 					}
 				}
-			},
-			"withUsers": function(requireUsers, userWhere) {
-				return {
-					"include": [
-						{
-							"model": UserModel,
-							"where": userWhere,
-							"required": requireUsers
-						}
-					]
-				};
 			}
 		},
 		"getterMethods": {

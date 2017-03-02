@@ -14,7 +14,7 @@ class TextEditor extends React.Component {
 	}
 	
 	static propTypes = {
-		"value": React.PropTypes.string,
+		"value": React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.object]),
 		"className": React.PropTypes.string,
 		"onChange": React.PropTypes.func
 	}

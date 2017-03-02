@@ -3,6 +3,7 @@
 const UserModel = require("./models/user");
 const IssueModel = require("./models/issue");
 const TagModel = require("./models/tag");
+const IssueImageModel = require("./models/issue-image");
 
 IssueModel.belongsTo(UserModel, { "as": "createdBy" });
 
@@ -26,9 +27,11 @@ IssueModel.belongsToMany(TagModel, {
 	"foreignKey": "issue_id"
 });
 
+IssueModel.hasMany(IssueImageModel, { "as": "images" });
 
 exports = module.exports = {
 	"User": UserModel,
 	"Issue": IssueModel,
-	"Tag": TagModel
+	"Tag": TagModel,
+	"IssueImage": IssueImageModel
 };

@@ -5,23 +5,7 @@ const webpack = require("webpack");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const Config = require("./lib/config");
 
-
-const pagesDir = path.join(__dirname, "client", "scripts", "pages");
-
-const entries = {};
-
 const jsxFilenameRegex = /\.jsx?$/;
-
-_.each(
-	fs.readdirSync(pagesDir),
-	file => {
-		if (jsxFilenameRegex.test(file)) {
-			entries[file.replace(jsxFilenameRegex, "")] = [
-				path.join(pagesDir, file)
-			];
-		}
-	}
-);
 
 module.exports = {
 	"entry": "./client/scripts/index.jsx",
@@ -125,6 +109,6 @@ module.exports = {
 		"process": true
 	},
 
-	"devtool": "source-map"
-	// devtool: "cheap-eval-source-map"
+	// "devtool": "source-map"
+	"devtool": "cheap-eval-source-map"
 };

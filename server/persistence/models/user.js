@@ -75,24 +75,20 @@ module.exports = exports = DB.define("user",
 				"fields": ["email"]
 			}
 		],
-		"defaultScope": {
-			"where": {
-				"deleted_at": null
+		"scopes": {
+			"not-deleted": {
+				"where": {
+					"deleted_at": null
+				}
+			},
+			"deleted": {	
+				"where": {
+					"deleted_at": {
+						"$ne": null
+					}
+				}
 			}
 		},
-		// instanceMethods: {
-		// 	toJSON: function() {
-		// 		console.log('TOJSON');
-		// 		const json = this.toJSON();
-
-		// 		delete json.firstName;
-		// 		delete json.middleName;
-		// 		delete json.lastName;
-		// 		delete json.displayName;
-
-		// 		return json;
-		// 	}
-		// },
 		"getterMethods": {
 			"name": function() {
 				return {

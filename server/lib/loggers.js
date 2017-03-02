@@ -19,7 +19,9 @@ if (Config.logging.sql.file !== false) {
 			winston.transports.File,
 			{
 				"filename": Config.logging.sql.file,
-				"timestamp": true
+				"timestamp": true,
+				// eslint-disable-next-line no-magic-numbers
+				"maxsize": 10 * 1000 * 1000 // 10MB
 			}
 		);
 	}
