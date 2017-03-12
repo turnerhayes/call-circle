@@ -1,6 +1,4 @@
-const _ = require("lodash");
 const path = require("path");
-const fs = require("fs");
 const webpack = require("webpack");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const Config = require("./lib/config");
@@ -17,59 +15,57 @@ module.exports = {
 	},
 
 	"module": {
-		"loaders": [
+		"rules": [
 			{
 				"test": jsxFilenameRegex,
 				"exclude": /node_modules/,
-				"loaders": ["babel-loader", "eslint-loader"]
+				"use": ["babel-loader", "eslint-loader"]
 			},
 
 			{
-				"test": /\.less$/,
-				"loader": ExtractTextPlugin.extract(
-					"css-loader?sourceMap!postcss-loader!less-loader?" +
-						JSON.stringify({
-							"sourceMap": true,
-							"modifyVars": {
-								"fa-font-path": '"/static/fonts/font-awesome/"'
+				"test": /\.(less)|(css)$/,
+				"use": ExtractTextPlugin.extract({
+					"use": [
+						{
+							"loader": "css-loader",
+							"options": {
+								"sourceMap": true,
+								"importLoaders": 2
 							}
-						}),
-					{
-						"publicPath": "/static/css"
-					}
-				)
-			},
-
-			{
-				"test": /\.css$/,
-				"loader": ExtractTextPlugin.extract("css-loader?sourceMap!postcss", {
+						},
+						"postcss-loader",
+						{
+							"loader": "less-loader",
+							"options": {
+								"sourceMap": true,
+								"modifyVars": {
+									"fa-font-path": '"/static/fonts/font-awesome/"'
+								}
+							}
+						},
+					],
 					"publicPath": "/static/css"
 				})
 			},
 
 			{
-				"test": /\.json$/,
-				"loader": "json-loader"
-			},
-
-			{
 				"test": /\.woff(2)?(\?.*)?$/,
-				"loader": "url-loader?limit=10000&mimetype=application/font-woff"
+				"use": "url-loader?limit=10000&mimetype=application/font-woff"
 			},
 
 			{
 				"test": /\.ttf(\?.*)?$/,
-				"loader": "file-loader"
+				"use": "file-loader"
 			},
 
 			{
 				"test": /\.eot(\?.*)?$/,
-				"loader": "file-loader"
+				"use": "file-loader"
 			},
 
 			{
 				"test": /\.svg(\?.*)?$/,
-				"loader": "file-loader"
+				"use": "file-loader"
 			}
 		]
 	},
@@ -79,23 +75,26 @@ module.exports = {
 			"React": "react"
 		}),
 
-		// jQuery and Tether required by Bootstrap
+		// jQuery required by Bootstrap
 		new webpack.ProvidePlugin({
 			"jQuery": "jquery",
 			"$": "jquery"
 		}),
+
 		new webpack.DefinePlugin({
 			"IS_DEVELOPMENT": JSON.stringify(Config.app.isDevelopment),
 		}),
 
-        new ExtractTextPlugin("css/bundle.css", {
-            "allChunks": true
-        })
+		new ExtractTextPlugin({
+			"filename": "css/bundle.css",
+			"allChunks": true
+		})
 	],
 
 	"resolve": {
-		"extensions": ["", ".js", ".jsx", ".json", ".less", ".css"],
-		"root": [
+		"extensions": [".js", ".jsx", ".json", ".less", ".css"],
+		"modules": [
+			path.resolve(__dirname, "node_modules"),
 			Config.paths.client,
 			path.join(Config.paths.client, "styles")
 		]
@@ -110,5 +109,6 @@ module.exports = {
 	},
 
 	// "devtool": "source-map"
-	"devtool": "cheap-eval-source-map"
+	// "devtool": "cheap-eval-source-map"
+	// "devtool": "eval"
 };
