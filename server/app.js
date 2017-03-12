@@ -12,8 +12,8 @@ const handlebars         = require("handlebars");
 const hbs                = require("express-hbs");
 const pg                 = require("pg");
 const pgSession          = require("connect-pg-simple")(session);
-const Config             = require("../lib/config");
-const passportMiddleware = require("../lib/passport");
+const Config             = require("./lib/config");
+const passportMiddleware = require("./lib/passport");
 
 const app = express();
 
@@ -103,7 +103,7 @@ if (Config.app.isDevelopment) {
 
 	webpackConfig.plugins.push(
 		new webpack.HotModuleReplacementPlugin(),
-		new webpack.NoErrorsPlugin()
+		new webpack.NoEmitOnErrorsPlugin()
     );
 
 	const compiler = webpack(webpackConfig);

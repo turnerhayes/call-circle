@@ -1,6 +1,8 @@
+"use strict";
+
 const path = require("path");
 
-const PROJECT_ROOT = path.resolve(__dirname, "..");
+const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 const CLIENT_PATH = path.join(PROJECT_ROOT, "client");
 const DIST_PATH = path.join(PROJECT_ROOT, "dist");
 

@@ -7,7 +7,7 @@ const debug = require("debug")("ccircle:tools:db-session");
 const Promise = require("bluebird");
 const fs = Promise.promisifyAll(require("fs"));
 const pg = require("pg");
-const Config = require("../../lib/config");
+const Config = require("../lib/config");
 
 const tableSQLPath = require.resolve("connect-pg-simple/table.sql");
 

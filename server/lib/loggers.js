@@ -2,7 +2,7 @@
 
 const winston = require("winston");
 const morgan = require("morgan");
-const Config = require("../../lib/config");
+const Config = require("./config");
 
 let sqlLogger;
 

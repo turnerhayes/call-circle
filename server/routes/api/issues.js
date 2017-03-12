@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const mkdirp = Promise.promisify(require("mkdirp"));
 const express = require("express");
-const Config = require("../../../lib/config");
+const Config = require("../../lib/config");
 const IssuesStore = require("../../persistence/stores/issue");
 
 const router = express.Router();

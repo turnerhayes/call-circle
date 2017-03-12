@@ -9,7 +9,7 @@ const http = require("http");
 const fs = require("fs");
 const spdy = require("spdy");
 const app = require("../app");
-const Config = require("../../lib/config");
+const Config = require("../lib/config");
 
 app.set("port", Config.app.address.port);
 

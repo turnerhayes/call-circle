@@ -2,7 +2,7 @@
 
 const Sequelize = require("sequelize");
 const Loggers = require("../lib/loggers");
-const Config = require("../../lib/config");
+const Config = require("../lib/config");
 
 module.exports = exports = new Sequelize(
 	Config.auth.db.url,

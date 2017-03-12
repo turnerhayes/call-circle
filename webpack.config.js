@@ -1,7 +1,7 @@
 const path = require("path");
 const webpack = require("webpack");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
-const Config = require("./lib/config");
+const Config = require("./server/lib/config");
 
 const jsxFilenameRegex = /\.jsx?$/;
 
@@ -94,7 +94,7 @@ module.exports = {
 	"resolve": {
 		"extensions": [".js", ".jsx", ".json", ".less", ".css"],
 		"modules": [
-			path.resolve(__dirname, "node_modules"),
+			"node_modules",
 			Config.paths.client,
 			path.join(Config.paths.client, "styles")
 		]

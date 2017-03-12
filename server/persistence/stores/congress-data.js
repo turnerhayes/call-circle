@@ -4,7 +4,7 @@ const path    = require("path");
 const Promise = require("bluebird");
 const fs      = Promise.promisifyAll(require("fs"));
 const request = require("request-promise");
-const Config  = require("../../../lib/config");
+const Config  = require("../../lib/config");
 
 const API_VERSION = 1;
 

@@ -1,6 +1,8 @@
+"use strict";
+
 const passport         = require("passport");
 const FacebookStrategy = require("passport-facebook");
-const UserStore        = require("../server/persistence/stores/user");
+const UserStore        = require("../persistence/stores/user");
 const Config           = require("./config");
 
 const callbackURL = Config.getBaseURL() + Config.auth.facebook.callbackURL;

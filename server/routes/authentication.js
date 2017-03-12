@@ -2,7 +2,7 @@
 
 const express = require("express");
 const passport = require("passport");
-const Config = require("../../lib/config");
+const Config = require("../lib/config");
 
 const router = express.Router();
 
