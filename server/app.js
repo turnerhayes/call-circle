@@ -12,6 +12,8 @@ const handlebars         = require("handlebars");
 const hbs                = require("express-hbs");
 const pg                 = require("pg");
 const pgSession          = require("connect-pg-simple")(session);
+const cors               = require("cors");
+const HTTPStatusCodes    = require("http-status-codes");
 const Config             = require("./lib/config");
 const passportMiddleware = require("./lib/passport");
 
@@ -20,6 +22,16 @@ const app = express();
 app.locals.IS_DEVELOPMENT = Config.app.isDevelopment;
 
 const TEMPLATES_DIR = path.join(__dirname, "views");
+
+const SITE_RESTRICTED_CORS_OPTIONS = {
+	"origin": Config.app.address.origin
+};
+
+function raise404(req, res, next) {
+	const err = new Error("Not Found");
+	err.status = 404;
+	next(err);
+}
 
 // view engine setup
 app.engine(
@@ -85,8 +97,12 @@ app.use(
 	)
 );
 
-app.use("/", require("./routes/authentication"));
-app.use("/api", require("./routes/api"));
+app.use("/", cors(SITE_RESTRICTED_CORS_OPTIONS), require("./routes/authentication"));
+app.use("/api", cors(), require("./routes/api"));
+
+// Make sure no /api calls get caught by the below catch-all route handler, so that
+// /api calls can 404 correctly
+app.use("/api/*", raise404);
 
 if (Config.app.isDevelopment) {
 	const webpack = require("webpack");
@@ -125,7 +141,8 @@ else {
 
 app.get(
 	"*",
-	function(req, res, next) {
+	cors(SITE_RESTRICTED_CORS_OPTIONS),
+	(req, res, next) => {
 		// If what we're serving is supposed to be HTML, serve the base page.
 		if (req.accepts(["html", "json"]) === "html") {
 			res.render("index", {
@@ -139,17 +156,12 @@ app.get(
 );
 
 /// catch 404 and forwarding to error handler
-app.use(function(req, res, next) {
-	const err = new Error("Not Found");
-	err.status = 404;
-	next(err);
-});
+app.use(raise404);
 
 /// error handlers
 
 app.use(function(err, req, res) {
-	// eslint-disable-next-line no-magic-numbers
-	res.status(err.status || 500);
+	res.status(err.status || HTTPStatusCodes.INTERNAL_SERVER_ERROR);
 
 	const errData = {
 		"message": err.message,
@@ -161,8 +173,7 @@ app.use(function(err, req, res) {
 			{}
 	};
 
-	// eslint-disable-next-line no-magic-numbers
-	if (err.status !== 404) {
+	if (err.status !== HTTPStatusCodes.NOT_FOUND) {
 		Loggers.error.error(err);
 	}
 

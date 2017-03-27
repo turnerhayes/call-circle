@@ -1,10 +1,11 @@
 "use strict";
 
-const _         = require("lodash");
-const assert    = require("assert");
-const Sequelize = require("sequelize");
-const models    = require("../models");
-const Loggers   = require("../../lib/loggers");
+const _                 = require("lodash");
+const assert            = require("assert");
+const Sequelize         = require("sequelize");
+const models            = require("../models");
+const Loggers           = require("../../lib/loggers");
+const NotFoundException = require("../exceptions/not-found");
 
 const IssueModel = models.Issue;
 
@@ -106,7 +107,13 @@ class IssuesStore {
 				"include": includes
 			}
 		).then(
-			issue => issue || Sequelize.Promise.reject(null)
+			issue => {
+				if (!issue) {
+					throw new NotFoundException(`Issue ${id} was not found`);
+				}
+
+				return issue;
+			}
 		);
 	}
 

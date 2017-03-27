@@ -1,6 +1,7 @@
 "use strict";
 
 const path = require("path");
+const sharedConfig = require("../../shared-lib/config");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 const CLIENT_PATH = path.join(PROJECT_ROOT, "client");
@@ -15,6 +16,26 @@ const PORT = Number(process.env.PORT) || DEFAULT_PORT;
 
 const HTTP_DEFAULT_PORT = 80;
 const HTTPS_DEFAULT_PORT = 443;
+
+const HOST = process.env.APP_ADDRESS_HOST;
+const EXTERNAL_PORT = Number(process.env.APP_ADDRESS_EXTERNAL_PORT) || PORT;
+
+const IS_SECURE = process.env.APP_ADDRESS_IS_SECURE ||
+	process.env.APP_SSL_KEY && process.env.APP_SSL_CERT;
+
+const ORIGIN = (function() {
+	let baseURL = "http" + (IS_SECURE ? "s" : "") + "://" +
+		HOST;
+
+	if (
+		!(EXTERNAL_PORT === HTTP_DEFAULT_PORT && !IS_SECURE) &&
+		!(EXTERNAL_PORT === HTTPS_DEFAULT_PORT && IS_SECURE)
+	) {
+		baseURL += ":" + EXTERNAL_PORT;
+	}
+
+	return baseURL;
+}());
 
 function getConnectionString(args) {
 	return "postgresql://" + args.username + ":" + args.password +
@@ -42,13 +63,12 @@ const Config = {
 		"environment": ENVIRONMENT,
 		"isDevelopment": IS_DEVELOPMENT,
 		"address": {
-			"host": process.env.APP_ADDRESS_HOST,
+			"host": HOST,
 			"insecurePort": Number(process.env.APP_ADDRESS_INSECURE_PORT),
 			"port": PORT,
-			"externalPort": Number(process.env.APP_ADDRESS_EXTERNAL_PORT) ||
-				PORT,
-			"isSecure": process.env.APP_ADDRESS_IS_SECURE ||
-				process.env.APP_SSL_KEY && process.env.APP_SSL_CERT
+			"externalPort": EXTERNAL_PORT,
+			"isSecure": IS_SECURE,
+			"origin": ORIGIN
 		},
 		"ssl": {
 			"key": process.env.APP_SSL_KEY,
@@ -81,6 +101,7 @@ const Config = {
 			"url": SESSION_DB_URL
 		}
 	},
+	"shared": sharedConfig,
 	"logging": {
 		"error": {
 			"file": process.env.LOGGING_ERROR_FILE ?
@@ -115,20 +136,6 @@ const Config = {
 			"apiKey": process.env.THIRD_PARTY_PRO_PUBLICA_API_KEY
 		}
 	}
-};
-
-Config.getBaseURL = function() {
-	let baseURL = "http" + (Config.app.address.isSecure ? "s" : "") + "://" +
-		Config.app.address.host;
-
-	if (
-		!(Config.app.address.externalPort === HTTP_DEFAULT_PORT && !Config.app.address.isSecure) &&
-		!(Config.app.address.externalPort === HTTPS_DEFAULT_PORT && Config.app.address.isSecure)
-	) {
-		baseURL += ":" + Config.app.address.externalPort;
-	}
-
-	return baseURL;
 };
 
 exports = module.exports = Config;

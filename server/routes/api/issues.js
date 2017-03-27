@@ -2,14 +2,18 @@
 
 const _ = require("lodash");
 const Promise = require("bluebird");
-const fs = require("fs");
-const path = require("path");
-const mkdirp = Promise.promisify(require("mkdirp"));
 const express = require("express");
+const sharp = require("sharp");
+const HTTPStatusCodes = require("http-status-codes");
 const Config = require("../../lib/config");
 const IssuesStore = require("../../persistence/stores/issue");
+const IssueImagesStore = require("../../persistence/stores/issue-image");
+const NotFoundException = require("../../persistence/exceptions/not-found");
+const AccessForbiddenException = require("../../persistence/exceptions/access-forbidden");
 
 const router = express.Router();
+
+const PNG_MIME_TYPE = "image/png";
 
 function processIssue(req, issue) {
 	const issueJSON = issue.toJSON();
@@ -19,6 +23,56 @@ function processIssue(req, issue) {
 		issue.isUserSubscribed(req.user);
 
 	return issueJSON;
+}
+
+function getImageFromRequest(req) {
+	return new Promise(
+		(resolve, reject) => {
+			if (!req.busboy) {
+				reject(new Error("No busboy instance on request"));
+				return;
+			}
+
+			let resolved = false;
+
+			req.busboy.on(
+				"file",
+				(fieldName, file, filename, encoding, mimeType) => {
+					if (Config.shared.issues.images.validMimeTypes.indexOf(mimeType) < 0) {
+						const err = new Error(
+							"Invalid MIME type: " + mimeType +
+							". Type must be one of the following: " +
+							Config.shared.issues.images.validMimeTypes.join(", ")
+						);
+
+						err.status = HTTPStatusCodes.UNSUPPORTED_MEDIA_TYPE;
+
+						reject(err);
+						return;
+					}
+
+					// Convert to PNG if it's not already PNG
+					if (mimeType !== PNG_MIME_TYPE) {
+						file = file.pipe(sharp().png());
+					}
+
+					resolve(file);
+					resolved = true;
+				}
+			);
+
+			req.busboy.on(
+				"finish",
+				() => {
+					if (!resolved) {
+						resolve();
+					}
+				}
+			);
+
+			req.pipe(req.busboy);
+		}
+	);
 }
 
 router.route("/")
@@ -46,7 +100,7 @@ router.route("/")
 		(req, res, next) => {
 			if (!req.user) {
 				const err = new Error("You must be logged in to create an issue");
-				err.status = 403;
+				err.status = HTTPStatusCodes.FORBIDDEN;
 
 				next(err);
 				return;
@@ -60,8 +114,7 @@ router.route("/")
 					req.body
 				)
 			).then(
-				// eslint-disable-next-line no-magic-numbers
-				issue => res.status(201).location(req.baseUrl + "/" + issue.id).json(processIssue(req, issue))
+				issue => res.status(HTTPStatusCodes.CREATED).location(req.baseUrl + "/" + issue.id).json(processIssue(req, issue))
 			).catch(ex => next(ex));
 		}
 	);
@@ -95,7 +148,16 @@ router.route("/:issueID")
 
 			IssuesStore.findByID(req.params.issueID, options).then(
 				issue => res.set("Last-Modified", issue.updated_at).json(processIssue(req, issue))
-			).catch(ex => next(ex));
+			).catch(
+				ex => {
+					if (NotFoundException.isThisException(ex)) {
+						next();
+						return;
+					}
+
+					next(ex);
+				}
+			);
 		}
 	).post(
 		(req, res, next) => {
@@ -109,7 +171,16 @@ router.route("/:issueID")
 
 			IssuesStore.updateIssue(issue, options).then(
 				issue => res.json(processIssue(req, issue))
-			).catch(ex => next(ex));
+			).catch(
+				ex => {
+					if (NotFoundException.isThisException(ex)) {
+						next();
+						return;
+					}
+
+					next(ex);
+				}
+			);
 		}
 	);
 
@@ -118,7 +189,7 @@ router.route("/:issueID/subscribe")
 		(req, res, next) => {
 			if (!req.user) {
 				const err = new Error("You must be logged in to subscribe to an issue");
-				err.status = 403;
+				err.status = HTTPStatusCodes.FORBIDDEN;
 
 				next(err);
 				return;
@@ -128,9 +199,7 @@ router.route("/:issueID/subscribe")
 				"issueID": Number(req.params.issueID),
 				"userID": req.user.id
 			}).then(
-				() => res.json({
-					"success": true
-				})
+				() => res.status(HTTPStatusCodes.NO_CONTENT).end()
 			).catch(ex => next(ex));
 		}
 	);
@@ -140,7 +209,7 @@ router.route("/:issueID/unsubscribe")
 		(req, res, next) => {
 			if (!req.user) {
 				const err = new Error("You must be logged in to unsubscribe from an issue");
-				err.status = 403;
+				err.status = HTTPStatusCodes.FORBIDDEN;
 
 				next(err);
 				return;
@@ -150,86 +219,133 @@ router.route("/:issueID/unsubscribe")
 				"issueID": Number(req.params.issueID),
 				"userID": req.user.id
 			}).then(
-				() => res.json({
-					"success": true
-				})
+				() => res.status(HTTPStatusCodes.NO_CONTENT).end()
 			).catch(ex => next(ex));
 		}
 	);
 
 router.route("/:issueID/images")
-	.post(
+	.get(
 		(req, res, next) => {
 			if (!req.user) {
-				const err = new Error("You must be logged in to upload an image for an issue");
-				err.status = 403;
+				const err = new Error("You must be logged in to view images for an issue");
+				err.status = HTTPStatusCodes.FORBIDDEN;
 
 				next(err);
 				return;
 			}
 
-			if (req.busboy) {
-				IssuesStore.findByID(
-					req.params.issueID,
-					{
-						"currentUser": req.user
+			const userID = Number(req.query.userid) || req.user.id;
+			const issueID = req.params.issueID;
+
+			IssueImagesStore.findIssueImages({
+				issueID,
+				userID
+			}).then(
+				images => res.json(
+					images.reduce(
+						(out, image) => {
+							out.push({
+								"id": image.id,
+								"userID": image.user_id,
+								"issueID": image.issue_id,
+								"location": `${req.baseUrl}/${issueID}/images/${image.id}`
+							});
+
+							return out;
+						},
+						[]
+					)
+				)
+			).catch(ex => next(ex));
+		}
+	)
+	.post(
+		(req, res, next) => {
+			return getImageFromRequest(req).then(
+				file => {
+					if (!file) {
+						next(new Error("No image data sent"));
+						return;
 					}
-				).then(
-					issue => {
-						// req.busboy.on("field", function(fieldname, value, valTruncated, keyTruncated) {
-						// 	console.log("on:field", keyTruncated);
-						// });
-						req.busboy.on(
-							"file",
-							(fieldName, file, filename, encoding, mimeType) => {
-								console.log("processing file ", filename);
-								const directory = path.join(
-									Config.uploads.images.storage.directory,
-									"issues",
-									req.params.issueID
-								);
 
-								mkdirp(directory).then(
-									() => {
-										const filePath = path.join(directory, req.user.id + path.extname(filename));
-										file.pipe(fs.createWriteStream(filePath));
+					const { issueID } = req.params;
+					const userID = req.user.id;
 
-										req.busboy.on("finish", () => {
-											console.log("busboy finished");
-											issue.createImage({
-												"path": filePath,
-												"mimeType": mimeType
-											}).then(
-												() => res.send("file uploaded")
-											);
-										});
-									}
-								);
+					IssueImagesStore.addIssueImage({
+						issueID,
+						userID,
+						"fileStream": file,
+						"mimeType": PNG_MIME_TYPE
+					}).then(
+						image => res.status(HTTPStatusCodes.CREATED)
+							.location(`${req.baseUrl}/${issueID}/images/${image.id}`)
+							.end()
+					).catch(ex => next(ex));
+				}
+			);
+		}
+	);
 
+router.route("/:issueID/images/:imageID")
+	.get(
+		(req, res, next) => {
+			if (!req.user) {
+				const err = new Error("You must be logged in to view an image for an issue");
+				err.status = HTTPStatusCodes.FORBIDDEN;
 
-							}
-						);
-
-						req.pipe(req.busboy);
-					}
-				).catch(
-					err => {
-						if (err === null) {
-							next();
-							return;
-						}
-
-						next(err);
-					}
-				);
-
+				next(err);
 				return;
 			}
 
-			const err = new Error("Unable to handle file upload: busboy not available on request");
-			err.status = 500;
+			IssueImagesStore.findIssueImage({
+				"imageID": req.params.imageID
+			}).then(
+				image => res.sendFile(image.path)
+			).catch(
+				ex => {
+					if (NotFoundException.isThisException(ex)) {
+						next();
+						return;
+					}
 
-			res.next(err);
+					next(ex);
+				}
+			);
+		}
+	)
+	.delete(
+		(req, res, next) => {
+			if (!req.user) {
+				const err = new Error("You must be logged in to delete an image for an issue");
+				err.status = HTTPStatusCodes.FORBIDDEN;
+
+				next(err);
+				return;
+			}
+
+			IssueImagesStore.removeIssueImage({
+				"deleteByUserID": req.user.id,
+				"imageID": req.params.imageID
+			}).then(
+				() => res.status(HTTPStatusCodes.NO_CONTENT).end()
+			).catch(
+				err => {
+					if (NotFoundException.isThisException(err)) {
+						next();
+						return;
+					}
+
+					if (AccessForbiddenException.isThisException(err)) {
+						const error = new Error("You are not permitted to delete this image");
+						error.status = HTTPStatusCodes.FORBIDDEN;
+
+						next(error);
+					}
+
+					next(err);
+				}
+			);
 		}
 	);
 

@@ -8,6 +8,7 @@ const debug = require("debug")("call-circle:server");
 const http = require("http");
 const fs = require("fs");
 const spdy = require("spdy");
+const HTTPStatusCodes = require("http-status-codes");
 const app = require("../app");
 const Config = require("../lib/config");
 
@@ -17,8 +18,7 @@ app.set("port", Config.app.address.port);
 if (Config.app.ssl.key && Config.app.ssl.cert) {
 	const insecureServer = http.createServer(
 		function(req, res) {
-			// eslint-disable-next-line no-magic-numbers
-			res.writeHead(301, {
+			res.writeHead(HTTPStatusCodes.MOVED_PERMANENTLY, {
 				"Location": "https://" + req.headers.host.replace(
 					new RegExp("\\:" + Config.app.address.insecurePort + "$"),
 					":" + Config.app.address.port

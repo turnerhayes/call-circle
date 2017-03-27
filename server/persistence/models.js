@@ -29,6 +29,12 @@ IssueModel.belongsToMany(TagModel, {
 
 IssueModel.hasMany(IssueImageModel, { "as": "images" });
 
+UserModel.hasMany(IssueImageModel, { "as": "issueImages" });
+
+IssueImageModel.belongsTo(IssueModel, { "as": "issue" });
+
+IssueImageModel.belongsTo(UserModel, { "as": "user" });
+
 exports = module.exports = {
 	"User": UserModel,
 	"Issue": IssueModel,

@@ -8,17 +8,10 @@ const MIME_TYPE_MAX_LENGTH = 1000;
 
 const IssueImageModel = DB.define("issueImage",
 	{
-		"userId": {
-			"field": "user_id",
+		"id": {
+			"field": "id",
 			"type": Sequelize.INTEGER,
-			"allowNull": false,
-			"primaryKey": true
-		},
-
-		"issueId": {
-			"field": "issue_id",
-			"type": Sequelize.INTEGER,
-			"allowNull": false,
+			"autoIncrement": true,
 			"primaryKey": true
 		},
 
@@ -29,7 +22,7 @@ const IssueImageModel = DB.define("issueImage",
 		},
 
 		"mimeType": {
-			"field": "mimeType",
+			"field": "mime_type",
 			"type": Sequelize.STRING(MIME_TYPE_MAX_LENGTH),
 			"allowNull": false
 		}

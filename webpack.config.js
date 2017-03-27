@@ -108,7 +108,7 @@ module.exports = {
 		"process": true
 	},
 
-	// "devtool": "source-map"
+	"devtool": "source-map"
 	// "devtool": "cheap-eval-source-map"
 	// "devtool": "eval"
 };

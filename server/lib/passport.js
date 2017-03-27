@@ -5,7 +5,7 @@ const FacebookStrategy = require("passport-facebook");
 const UserStore        = require("../persistence/stores/user");
 const Config           = require("./config");
 
-const callbackURL = Config.getBaseURL() + Config.auth.facebook.callbackURL;
+const callbackURL = Config.app.address.origin + "/" + Config.auth.facebook.callbackURL;
 
 passport.serializeUser(function(user, done) {
 	done(null, user.id);

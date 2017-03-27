@@ -4,7 +4,6 @@ const _ = require("lodash");
 const Sequelize = require("sequelize");
 const DB = require("../database-connection");
 const UserModel = require("./user");
-const IssueImageModel = require("./issue-image");
 const Categories = require("../categories");
 
 const NAME_MAX_LENGTH = 1000;
