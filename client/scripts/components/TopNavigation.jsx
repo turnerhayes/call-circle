@@ -1,9 +1,9 @@
-import _ from "lodash";
-import React from "react";
+import { uniqueId }         from "lodash";
+import React                from "react";
 import { Link, withRouter } from "react-router";
-import Breadcrumbs from "react-breadcrumbs";
-import UserUtils from "../utils/user";
-import "breadcrumbs.less";
+import Breadcrumbs          from "react-breadcrumbs";
+import UserUtils            from "project/scripts/utils/user";
+import                           "project/styles/breadcrumbs.less";
 
 class TopNavigation extends React.Component {
 	static propTypes = {
@@ -16,15 +16,15 @@ class TopNavigation extends React.Component {
 
 		if (UserUtils.currentUser) {
 			userLinkElements = [
-				<span key={_.uniqueId()}>Logged in as </span>,
-				<Link href={`/profile/${UserUtils.currentUser.username}`} key={_.uniqueId()}>
+				<span key={uniqueId()}>Logged in as </span>,
+				<Link href={`/profile/${UserUtils.currentUser.username}`} key={uniqueId()}>
 					{UserUtils.currentUser.displayName}
 				</Link>
 			];
 		}
 		else {
 			userLinkElements = [
-				<Link to="/" key={_.uniqueId()}>Log in</Link>
+				<Link to="/" key={uniqueId()}>Log in</Link>
 			];
 		}
 

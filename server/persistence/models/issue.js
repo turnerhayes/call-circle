@@ -1,10 +1,11 @@
 "use strict";
 
-const _ = require("lodash");
-const Sequelize = require("sequelize");
-const DB = require("../database-connection");
-const UserModel = require("./user");
-const Categories = require("../categories");
+const _          = require("lodash");
+const Sequelize  = require("sequelize");
+const rfr        = require("rfr");
+const DB         = rfr("server/persistence/database-connection");
+const UserModel  = rfr("server/persistence/models/user");
+const Categories = rfr("shared-lib/categories");
 
 const NAME_MAX_LENGTH = 1000;
 

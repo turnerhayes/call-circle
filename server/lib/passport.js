@@ -2,8 +2,9 @@
 
 const passport         = require("passport");
 const FacebookStrategy = require("passport-facebook");
-const UserStore        = require("../persistence/stores/user");
-const Config           = require("./config");
+const rfr              = require("rfr");
+const UserStore        = rfr("server/persistence/stores/user");
+const Config           = rfr("server/lib/config");
 
 const callbackURL = Config.app.address.origin + "/" + Config.auth.facebook.callbackURL;
 

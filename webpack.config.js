@@ -97,7 +97,12 @@ module.exports = {
 			"node_modules",
 			Config.paths.client,
 			path.join(Config.paths.client, "styles")
-		]
+		],
+		"alias": {
+			"project/shared-lib": path.join(__dirname, "shared-lib"),
+			"project/scripts": path.join(Config.paths.client, "scripts"),
+			"project/styles": path.join(Config.paths.client, "styles")
+		}
 	},
 
 	"node": {

@@ -1,17 +1,17 @@
-import ReactDOM from "react-dom";
-import React from "react";
+import ReactDOM                                      from "react-dom";
+import React                                         from "react";
 import { Router, Route, browserHistory, IndexRoute } from "react-router";
-import UserUtils from "./utils/user";
-import App from "./components/App";
-import Home from "./components/Home";
-import SiteAdmin from "./components/SiteAdmin";
-import Settings from "./components/Settings";
-import Groups from "./components/Groups";
-import Issues from "./components/Issues";
-import AddIssue from "./components/issues/Add";
-import EditIssue from "./components/issues/Edit";
-import IssueDetails from "./components/issues/Details";
-import IssueSearch from "./components/issues/Search";
+import UserUtils                                     from "project/scripts/utils/user";
+import App                                           from "project/scripts/components/App";
+import Home                                          from "project/scripts/components/Home";
+import SiteAdmin                                     from "project/scripts/components/SiteAdmin";
+import Settings                                      from "project/scripts/components/Settings";
+import Groups                                        from "project/scripts/components/Groups";
+import Issues                                        from "project/scripts/components/Issues";
+import AddIssue                                      from "project/scripts/components/issues/Add";
+import EditIssue                                     from "project/scripts/components/issues/Edit";
+import IssueDetails                                  from "project/scripts/components/issues/Details";
+import IssueSearch                                   from "project/scripts/components/issues/Search";
 
 ReactDOM.render(
 	<Router history={browserHistory}>

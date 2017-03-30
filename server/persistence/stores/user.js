@@ -1,6 +1,7 @@
 "use strict";
 
-const UserModel = require("../models").User;
+const rfr       = require("rfr");
+const UserModel = rfr("server/persistence/models").User;
 
 class UserStore {
 	static findByID(id) {

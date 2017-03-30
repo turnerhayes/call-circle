@@ -4,13 +4,14 @@
 
 require("dotenv").config();
 
-const debug = require("debug")("call-circle:server");
-const http = require("http");
-const fs = require("fs");
-const spdy = require("spdy");
+const debug           = require("debug")("call-circle:server");
+const http            = require("http");
+const fs              = require("fs");
+const spdy            = require("spdy");
 const HTTPStatusCodes = require("http-status-codes");
-const app = require("../app");
-const Config = require("../lib/config");
+const rfr             = require("rfr");
+const app             = rfr("server/app");
+const Config          = rfr("server/lib/config");
 
 app.set("port", Config.app.address.port);
 

@@ -1,16 +1,16 @@
-import _ from "lodash";
-import React from "react";
-import { SingleDatePicker } from "react-dates";
-import { withRouter } from "react-router";
-import moment from "moment";
-import TextEditor from "../TextEditor";
-import IssueUtils from "../../utils/issue";
-import Categories from "../../../../server/persistence/categories";
-import "react-dates/lib/css/_datepicker.css";
+import { isString, map, uniqueId } from "lodash";
+import React                       from "react";
+import { SingleDatePicker }        from "react-dates";
+import { withRouter }              from "react-router";
+import moment                      from "moment";
+import TextEditor                  from "project/scripts/components/TextEditor";
+import IssueUtils                  from "project/scripts/utils/issue";
+import Categories                  from "project/shared-lib/categories";
+import                                  "react-dates/lib/css/_datepicker.css";
 
 const PROP_NAMES = ["name", "category", "deadline", "description"];
 
-const CATEGORY_LIST = _.map(Categories,
+const CATEGORY_LIST = map(Categories,
 	(category, categoryType) => ({
 		"id": categoryType,
 		"name": category.name	
@@ -41,7 +41,7 @@ function getState(issue) {
 class IssueForm extends React.Component {
 	formType = this.props.issue ? "add" : "edit"
 
-	componentID = _.uniqueId(`${this.formType}-issue-`)
+	componentID = uniqueId(`${this.formType}-issue-`)
 
 	static propTypes = {
 		"issue": React.PropTypes.object,
@@ -72,7 +72,7 @@ class IssueForm extends React.Component {
 			{}
 		);
 
-		if (!_.isString(dataValues.description)) {
+		if (!isString(dataValues.description)) {
 			dataValues.description = TextEditor.toMarkdown(this.state.description);
 		}
 

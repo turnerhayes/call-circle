@@ -1,8 +1,8 @@
-import React from "react";
+import React          from "react";
 import { withRouter } from "react-router";
-import TopNavigation from "./TopNavigation";
-import "bootstrap/dist/js/bootstrap.js";
-import "page-layout.less";
+import TopNavigation  from "project/scripts/components/TopNavigation";
+import                     "bootstrap/dist/js/bootstrap.js";
+import                     "project/styles/page-layout.less";
 
 class App extends React.Component {
 	static propTypes = {

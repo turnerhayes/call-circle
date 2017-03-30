@@ -1,9 +1,10 @@
 "use strict";
 
-const UserModel = require("./models/user");
-const IssueModel = require("./models/issue");
-const TagModel = require("./models/tag");
-const IssueImageModel = require("./models/issue-image");
+const rfr             = require("rfr");
+const UserModel       = rfr("server/persistence/models/user");
+const IssueModel      = rfr("server/persistence/models/issue");
+const TagModel        = rfr("server/persistence/models/tag");
+const IssueImageModel = rfr("server/persistence/models/issue-image");
 
 IssueModel.belongsTo(UserModel, { "as": "createdBy" });
 

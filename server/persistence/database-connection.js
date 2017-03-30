@@ -1,8 +1,9 @@
 "use strict";
 
 const Sequelize = require("sequelize");
-const Loggers = require("../lib/loggers");
-const Config = require("../lib/config");
+const rfr       = require("rfr");
+const Loggers   = rfr("server/lib/loggers");
+const Config    = rfr("server/lib/config");
 
 module.exports = exports = new Sequelize(
 	Config.auth.db.url,

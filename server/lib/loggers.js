@@ -1,8 +1,9 @@
 "use strict";
 
 const winston = require("winston");
-const morgan = require("morgan");
-const Config = require("./config");
+const morgan  = require("morgan");
+const rfr     = require("rfr");
+const Config  = rfr("server/lib/config");
 
 let sqlLogger;
 

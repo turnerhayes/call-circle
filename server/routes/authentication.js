@@ -1,8 +1,9 @@
 "use strict";
 
-const express = require("express");
+const express  = require("express");
 const passport = require("passport");
-const Config = require("../lib/config");
+const rfr      = require("rfr");
+const Config   = rfr("server/lib/config");
 
 const router = express.Router();
 

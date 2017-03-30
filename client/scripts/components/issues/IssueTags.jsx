@@ -1,7 +1,7 @@
-import React from "react";
-import TagsInput from "react-tagsinput";
+import React       from "react";
+import TagsInput   from "react-tagsinput";
 import Autosuggest from "react-autosuggest";
-import "react-tagsinput/react-tagsinput.css";
+import                  "react-tagsinput/react-tagsinput.css";
 
 export default class IssueTags extends React.Component {
 	static propTypes = {

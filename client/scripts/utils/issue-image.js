@@ -1,6 +1,6 @@
-import $ from "jquery";
+import $       from "jquery";
 import Promise from "bluebird";
-import assert from "assert";
+import assert  from "assert";
 
 export default class IssueImageUtils {
 	static getImages({ issue, user = null }) {

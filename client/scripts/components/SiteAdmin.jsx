@@ -1,5 +1,5 @@
-import React from "react";
-import { withRouter } from "react-router";
+import React                            from "react";
+import { withRouter }                   from "react-router";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 
 class SiteAdmin extends React.Component {

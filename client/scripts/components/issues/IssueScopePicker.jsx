@@ -1,7 +1,7 @@
-import _ from "lodash";
-import React from "react";
-import CongressDataUtils from "../../utils/congress-data";
-import "issues/issue-scope-picker";
+import { keys }          from "lodash";
+import React             from "react";
+import CongressDataUtils from "project/scripts/utils/congress-data";
+import                        "project/styles/issues/issue-scope-picker";
 
 function getOrdinalSuffix(num) {
 	/* eslint-disable no-magic-numbers */
@@ -70,10 +70,10 @@ export default class IssueScopePicker extends React.Component {
 						this.__districtCounter = 0;
 
 						this.handleScopeChange([
-							_.keys(this.state.districts).sort()[this.__stateCounter++]
+							keys(this.state.districts).sort()[this.__stateCounter++]
 						]);
 
-						this.__stateCounter = this.__stateCounter % _.keys(this.state).length;
+						this.__stateCounter = this.__stateCounter % keys(this.state).length;
 					}}
 				>
 					{

@@ -1,10 +1,10 @@
-import _ from "lodash";
-import $ from "jquery";
-import React from "react";
-import { Link, browserHistory } from "react-router";
-import IssueUtils from "../../utils/issue";
-import Categories from "../../../../server/persistence/categories";
-import "search.less";
+import { isArray, isUndefined, map, castArray } from "lodash";
+import $                                        from "jquery";
+import React                                    from "react";
+import { Link, browserHistory }                 from "react-router";
+import IssueUtils                               from "project/scripts/utils/issue";
+import Categories                               from "project/shared-lib/categories";
+import                                               "project/styles/search.less";
 
 class SearchResult extends React.Component {
 	static propTypes = {
@@ -47,7 +47,7 @@ export default class IssueSearch extends React.Component {
 				if (!(field.name in data)) {
 					data[field.name] = field.value;
 				}
-				else if (!_.isArray(data[field.name])) {
+				else if (!isArray(data[field.name])) {
 					data[field.name] = [data[field.name], field.value];
 				}
 				else {
@@ -114,14 +114,14 @@ export default class IssueSearch extends React.Component {
 							id="search-category"
 							name="category"
 							defaultValue={
-								_.isUndefined(this.props.search.category) ?
+								isUndefined(this.props.search.category) ?
 									undefined :
-									_.castArray(this.props.search.category)
+									castArray(this.props.search.category)
 							}
 							multiple
 						>
 							{
-								_.map(
+								map(
 									Categories,
 									(category, categoryID) => (
 										<option

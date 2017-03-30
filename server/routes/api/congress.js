@@ -1,8 +1,9 @@
 "use strict";
 
-const express = require("express");
-const Promise = require("bluebird");
-const CongressDataStore = require("../../persistence/stores/congress-data");
+const express           = require("express");
+const Promise           = require("bluebird");
+const rfr               = require("rfr");
+const CongressDataStore = rfr("server/persistence/stores/congress-data");
 
 const router = express.Router();
 

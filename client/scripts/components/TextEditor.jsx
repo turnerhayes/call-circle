@@ -1,8 +1,13 @@
-import React from "react";
-import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw } from "draft-js";
+import React                        from "react";
+import {
+	Editor,
+	EditorState,
+	RichUtils, convertToRaw,
+	convertFromRaw
+}                                   from "draft-js";
 import { draftjsToMd, mdToDraftjs } from "draftjs-md-converter";
-import "draft-js/dist/Draft.css";
-import "text-editor.less";
+import                                   "draft-js/dist/Draft.css";
+import                                   "project/styles/text-editor.less";
 
 class TextEditor extends React.Component {
 	static toMarkdown(content) {

@@ -1,9 +1,9 @@
-import { isEmpty } from "lodash";
-import React from "react";
-import Dropzone from "react-dropzone";
-import Config from "../../../../shared-lib/config";
-import IssueImageUtils from "../../utils/issue-image";
-import "issues/image-upload.less";
+import { isEmpty }     from "lodash";
+import React           from "react";
+import Dropzone        from "react-dropzone";
+import Config          from "project/shared-lib/config";
+import IssueImageUtils from "project/scripts/utils/issue-image";
+import                      "project/styles/issues/image-upload.less";
 
 export default class ImageUpload extends React.Component {
 	static propTypes = {

@@ -1,9 +1,9 @@
-import React from "react";
-import { Link } from "react-router";
-import IssuesList from "./issues/List";
-import IssueUtils from "../utils/issue";
-import UserUtils from "../utils/user";
-import "issues/issue-list.less";
+import React      from "react";
+import { Link }   from "react-router";
+import IssuesList from "project/scripts/components/issues/List";
+import IssueUtils from "project/scripts/utils/issue";
+import UserUtils  from "project/scripts/utils/user";
+import                 "project/styles/issues/issue-list.less";
 
 class Issues extends React.Component {
 	static propTypes = {

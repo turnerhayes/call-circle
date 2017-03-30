@@ -1,7 +1,8 @@
 "use strict";
 
 const Sequelize = require("sequelize");
-const DB = require("../database-connection");
+const rfr       = require("rfr");
+const DB        = rfr("server/persistence/database-connection");
 
 const MAX_TAG_NAME_LENGTH = 32;
 

@@ -3,9 +3,10 @@
 const _                 = require("lodash");
 const assert            = require("assert");
 const Sequelize         = require("sequelize");
-const models            = require("../models");
-const Loggers           = require("../../lib/loggers");
-const NotFoundException = require("../exceptions/not-found");
+const rfr               = require("rfr");
+const models            = rfr("server/persistence/models");
+const Loggers           = rfr("server/lib/loggers");
+const NotFoundException = rfr("server/persistence/exceptions/not-found");
 
 const IssueModel = models.Issue;
 

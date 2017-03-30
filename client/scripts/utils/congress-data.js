@@ -1,4 +1,4 @@
-import $ from "jquery";
+import $       from "jquery";
 import Promise from "bluebird";
 
 export default class CongressDataUtils {

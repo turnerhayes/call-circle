@@ -3,7 +3,6 @@
 const express            = require("express");
 const session            = require("express-session");
 const path               = require("path");
-const Loggers            = require("./lib/loggers");
 // const favicon            = require("serve-favicon");
 const cookieParser       = require("cookie-parser");
 const bodyParser         = require("body-parser");
@@ -14,8 +13,10 @@ const pg                 = require("pg");
 const pgSession          = require("connect-pg-simple")(session);
 const cors               = require("cors");
 const HTTPStatusCodes    = require("http-status-codes");
-const Config             = require("./lib/config");
-const passportMiddleware = require("./lib/passport");
+const rfr                = require("rfr");
+const Loggers            = rfr("server/lib/loggers");
+const Config             = rfr("server/lib/config");
+const passportMiddleware = rfr("server/lib/passport");
 
 const app = express();
 

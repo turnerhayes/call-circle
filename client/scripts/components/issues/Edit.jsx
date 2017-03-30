@@ -1,6 +1,6 @@
-import React from "react";
-import IssueForm from "./IssueForm";
-import IssueUtils from "../../utils/issue";
+import React      from "react";
+import IssueForm  from "project/scripts/components/issues/IssueForm";
+import IssueUtils from "project/scripts/utils/issue";
 
 const CONTAINER_CLASS = "edit-issue-container";
 

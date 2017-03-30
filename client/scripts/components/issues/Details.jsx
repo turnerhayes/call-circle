@@ -1,11 +1,11 @@
-import React from "react";
+import React                from "react";
 import { Link, withRouter } from "react-router";
-import { markdown } from "markdown";
-import ImageUpload from "./ImageUpload";
-import IssueUtils from "../../utils/issue";
-import UserUtils from "../../utils/user";
-import Categories from "../../../../server/persistence/categories";
-import "issues/details.less";
+import { markdown }         from "markdown";
+import ImageUpload          from "project/scripts/components/issues/ImageUpload";
+import IssueUtils           from "project/scripts/utils/issue";
+import UserUtils            from "project/scripts/utils/user";
+import Categories           from "project/shared-lib/categories";
+import                           "project/styles/issues/details.less";
 
 const ISSUE_DETAILS_CONTAINER_CLASS = "issue-details-container";
 

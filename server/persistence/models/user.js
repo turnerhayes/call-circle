@@ -1,8 +1,9 @@
 "use strict";
 
-const assert = require("assert");
+const assert    = require("assert");
 const Sequelize = require("sequelize");
-const DB = require("../database-connection");
+const rfr       = require("rfr");
+const DB        = rfr("server/persistence/database-connection");
 
 module.exports = exports = DB.define("user",
 	{

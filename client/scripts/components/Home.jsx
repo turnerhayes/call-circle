@@ -1,7 +1,7 @@
-import React from "react";
-import UserUtils from "../utils/user";
-import Login from "./Login";
-import "home.less";
+import React     from "react";
+import UserUtils from "project/scripts/utils/user";
+import Login     from "project/scripts/components/Login";
+import                "project/styles/home.less";
 
 class Home extends React.Component {
 	confirmLogout() {

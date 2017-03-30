@@ -1,7 +1,8 @@
 "use strict";
 
-const path = require("path");
-const sharedConfig = require("../../shared-lib/config");
+const path         = require("path");
+const rfr          = require("rfr");
+const sharedConfig = rfr("shared-lib/config");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 const CLIENT_PATH = path.join(PROJECT_ROOT, "client");

@@ -1,15 +1,16 @@
 "use strict";
 
-const _ = require("lodash");
-const Promise = require("bluebird");
-const express = require("express");
-const sharp = require("sharp");
-const HTTPStatusCodes = require("http-status-codes");
-const Config = require("../../lib/config");
-const IssuesStore = require("../../persistence/stores/issue");
-const IssueImagesStore = require("../../persistence/stores/issue-image");
-const NotFoundException = require("../../persistence/exceptions/not-found");
-const AccessForbiddenException = require("../../persistence/exceptions/access-forbidden");
+const _                        = require("lodash");
+const Promise                  = require("bluebird");
+const express                  = require("express");
+const sharp                    = require("sharp");
+const HTTPStatusCodes          = require("http-status-codes");
+const rfr                      = require("rfr");
+const Config                   = rfr("server/lib/config");
+const IssuesStore              = rfr("server/persistence/stores/issue");
+const IssueImagesStore         = rfr("server/persistence/stores/issue-image");
+const NotFoundException        = rfr("server/persistence/exceptions/not-found");
+const AccessForbiddenException = rfr("server/persistence/exceptions/access-forbidden");
 
 const router = express.Router();
 

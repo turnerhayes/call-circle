@@ -1,7 +1,8 @@
 "use strict";
 
 const Sequelize = require("sequelize");
-const DB = require("../database-connection");
+const rfr       = require("rfr");
+const DB        = rfr("server/persistence/database-connection");
 
 const PATH_MAX_LENGTH = 1000;
 const MIME_TYPE_MAX_LENGTH = 1000;

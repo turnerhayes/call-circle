@@ -1,7 +1,7 @@
-import $ from "jquery";
-import _ from "lodash";
-import Promise from "bluebird";
-import assert from "assert";
+import $        from "jquery";
+import { omit } from "lodash";
+import Promise  from "bluebird";
+import assert   from "assert";
 
 function processResult(result) {
 	result.created_at = result.created_at ? new Date(result.created_at) : null;
@@ -126,7 +126,7 @@ export default class IssueUtils {
 				"type": "post",
 				"dataType": "json",
 				"contentType": "application/json",
-				"data": JSON.stringify(_.omit(issue, ["id"]))
+				"data": JSON.stringify(omit(issue, ["id"]))
 			}).then(
 				processResult
 			).catch(
