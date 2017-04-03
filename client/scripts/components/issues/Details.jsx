@@ -71,16 +71,16 @@ class IssueDetails extends React.Component {
 			"plus";
 
 		return (
-			<section className={ISSUE_DETAILS_CONTAINER_CLASS}>
+			<div className={ISSUE_DETAILS_CONTAINER_CLASS}>
 				<header className="issue-header">
-					<h2 className="issue-title">
+					<h1 className="issue-title">
 						<span
 							className={`category fa fa-${IssueUtils.CATEGORY_ICON_MAP[this.state.issue.category]}`}
 							aria-label={`Category: ${Categories[this.state.issue.category].name}`}
 							title={`Category: ${Categories[this.state.issue.category].name}`}
 						/>
 						{this.state.issue.name}
-					</h2>
+					</h1>
 
 					<div className="issue-actions">
 						<button
@@ -115,7 +115,7 @@ class IssueDetails extends React.Component {
 					className={this.state.issue.userIsSubscribed ? "" : "hidden"}
 					issue={this.state.issue}
 				/>
-			</section>
+			</div>
 		);
 	}
 
