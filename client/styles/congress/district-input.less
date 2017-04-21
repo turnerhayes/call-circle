@@ -1,0 +1,46 @@
+.c_district-input {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+
+	&--state-select {
+		min-width: 14em;
+	}
+
+	&--district-select {
+		min-width: 13em;
+	}
+
+	&--address-lookup{
+		&--dialog {
+			position: absolute;
+			display: none;
+			border: 1px solid black;
+			border-radius: 4px;
+			z-index: 1;
+			padding: 1em;
+			background-color: white;
+			width: 25em;
+			align-items: center;
+
+			&.is-open {
+				display: flex;
+			}
+
+			&--address-input {
+				flex: 1;
+				margin-right: 1em;
+			}
+
+			.geosuggest {
+				width: 100%;
+			}
+		}
+
+		&--trigger {
+			border: none;
+			background: none;
+			font-size: 1.5em;
+		}
+	}
+}

@@ -12,6 +12,7 @@ import AddIssue                                      from "project/scripts/compo
 import EditIssue                                     from "project/scripts/components/issues/Edit";
 import IssueDetails                                  from "project/scripts/components/issues/Details";
 import IssueSearch                                   from "project/scripts/components/issues/Search";
+import UserProfile                                   from "project/scripts/components/user/Profile";
 
 ReactDOM.render(
 	<Router history={browserHistory}>
@@ -37,6 +38,11 @@ ReactDOM.render(
 				name="Groups"
 				path="/groups"
 				component={() => <Groups groups={[{"name": "foo"}]} />} />
+			<Route name="User Profile" path="/profile">
+				<IndexRoute
+					component={UserProfile}
+				/>
+			</Route>
 			<Route name="Issues" path="/issues">
 				<IndexRoute
 					component={() => <Issues user={UserUtils.currentUser} />} />

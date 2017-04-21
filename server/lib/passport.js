@@ -6,7 +6,7 @@ const rfr              = require("rfr");
 const UserStore        = rfr("server/persistence/stores/user");
 const Config           = rfr("server/lib/config");
 
-const callbackURL = Config.app.address.origin + "/" + Config.auth.facebook.callbackURL;
+const callbackURL = Config.app.address.origin + Config.auth.facebook.callbackURL;
 
 passport.serializeUser(function(user, done) {
 	done(null, user.id);

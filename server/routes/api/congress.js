@@ -33,10 +33,35 @@ router.route("/house")
 		}
 	);
 
+router.route("/house/:state/:district")
+	.get(
+		(req, res, next) => {
+			CongressDataStore.getMemberInfo({
+				"chamber": "house",
+				"state": req.params.state,
+				"district": req.params.district
+			}).then(
+				res.json.bind(res)
+			).catch(ex => next(ex));
+		}
+	);
+
 router.route("/senate")
 	.get(
 		(req, res, next) => {
 			CongressDataStore.getSenateMembers().then(
+				res.json.bind(res)
+			).catch(ex => next(ex));
+		}
+	);
+
+router.route("/senate/:state")
+	.get(
+		(req, res, next) => {
+			CongressDataStore.getMemberInfo({
+				"chamber": "senate",
+				"state": req.params.state
+			}).then(
 				res.json.bind(res)
 			).catch(ex => next(ex));
 		}

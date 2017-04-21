@@ -2,6 +2,7 @@ import React                from "react";
 import { Link, withRouter } from "react-router";
 import { markdown }         from "markdown";
 import ImageUpload          from "project/scripts/components/issues/ImageUpload";
+import ContactInfo          from "project/scripts/components/congress/ContactInfo";
 import IssueUtils           from "project/scripts/utils/issue";
 import UserUtils            from "project/scripts/utils/user";
 import Categories           from "project/shared-lib/categories";
@@ -110,6 +111,24 @@ class IssueDetails extends React.Component {
 					className="description"
 					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.state.issue.description)}}
 				/>
+
+				{
+					UserUtils.currentUser.location ?
+						(
+							<ContactInfo
+								chamber="house"
+								state={UserUtils.currentUser.location.state}
+								district={UserUtils.currentUser.location.district}
+							/>
+						) : (
+							<div>
+								You don't have your location set. Update your <Link
+									to={`/profile`}
+								>profile</Link> so that you can see contact information for your
+								members of Congress.
+							</div>
+						)
+				}
 
 				<ImageUpload
 					className={this.state.issue.userIsSubscribed ? "" : "hidden"}

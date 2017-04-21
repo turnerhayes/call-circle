@@ -4,6 +4,7 @@ const assert    = require("assert");
 const Sequelize = require("sequelize");
 const rfr       = require("rfr");
 const DB        = rfr("server/persistence/database-connection");
+const States    = rfr("shared-lib/states.json");
 
 module.exports = exports = DB.define("user",
 	{
@@ -63,6 +64,16 @@ module.exports = exports = DB.define("user",
 					return this.getDataValue("profile_photo_url");
 				}
 			}
+		},
+		"location_state": {
+			"field": "location_state",
+			"type": Sequelize.ENUM(Object.keys(States)),
+			"default": null
+		},
+		"location_district": {
+			"field": "location_district",
+			"type": Sequelize.INTEGER,
+			"default": null
 		}
 	},
 	{
@@ -91,13 +102,20 @@ module.exports = exports = DB.define("user",
 			}
 		},
 		"getterMethods": {
-			"name": function() {
+			"name": function name() {
 				return {
 					"first": this.getDataValue("firstName"),
 					"middle": this.getDataValue("middleName"),
 					"last": this.getDataValue("lastName"),
 					"display": this.getDataValue("displayName") ||
 						this.getDataValue("firstName") + " " + this.getDataValue("lastName")
+				};
+			},
+
+			"location": function location() {
+				return {
+					"state": this.getDataValue("location_state"),
+					"district": this.getDataValue("location_district")
 				};
 			}
 		},

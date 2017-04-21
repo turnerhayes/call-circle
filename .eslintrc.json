@@ -38,6 +38,7 @@
 			}
 		],
 		"quote-props": ["error", "always"],
-		"semi": ["error", "always"]
+		"semi": ["error", "always"],
+		"no-debugger": "warn"
 	}
 }
