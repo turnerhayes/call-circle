@@ -5,10 +5,11 @@ import ImageUpload          from "project/scripts/components/issues/ImageUpload"
 import ContactInfo          from "project/scripts/components/congress/ContactInfo";
 import IssueUtils           from "project/scripts/utils/issue";
 import UserUtils            from "project/scripts/utils/user";
+import CongressDataUtils    from "project/scripts/utils/congress-data";
 import Categories           from "project/shared-lib/categories";
 import                           "project/styles/issues/details.less";
 
-const ISSUE_DETAILS_CONTAINER_CLASS = "issue-details-container";
+const ISSUE_DETAILS_CONTAINER_CLASS = "c_issue-details";
 
 class IssueDetails extends React.Component {
 	static propTypes = {
@@ -18,7 +19,9 @@ class IssueDetails extends React.Component {
 	state = {
 		"issue": null,
 		"issueLoadError": null,
-		"canToggleSubscription": true
+		"canToggleSubscription": true,
+		"representatives": null,
+		"representativesLoadError": null
 	}
 
 	componentWillMount() {
@@ -28,6 +31,8 @@ class IssueDetails extends React.Component {
 			issue => this.setState({issue}),
 			ex => this.setState({"issueLoadError": ex})
 		);
+
+		this.getRepresentatives();
 	}
 
 	handleSubscribeButtonClick = () => {
@@ -51,13 +56,73 @@ class IssueDetails extends React.Component {
 		);
 	}
 
-	renderIssueLoading() {
+	getRepresentatives = () => {
+		CongressDataUtils.getMemberInfo({
+			"state": UserUtils.currentUser.location.state,
+			"district": UserUtils.currentUser.location.district
+		}).then(
+			representatives => this.setState({ representatives })
+		).catch(
+			representativesLoadError => this.setState({ representativesLoadError })
+		);
+	}
+
+	renderIssueLoading = () => {
 		return (
 			<div className={`${ISSUE_DETAILS_CONTAINER_CLASS} loading`}>
 				<div className="loading-indicator">
 					<span className="spinner fa fa-spin fa-spinner">
 					</span>
 				</div>
+			</div>
+		);
+	}
+
+	renderRepresentativesContactInfo = () => {
+		if (!UserUtils.currentUser.location) {
+			return (
+				<div>
+					You don&#39;t have your location set. Update your <Link
+						to={`/profile`}
+					>profile</Link> so that you can see contact information for your
+					members of Congress.
+				</div>
+			);
+		}
+
+		if (this.state.representativesLoadError) {
+			return (
+				<div>
+					Error loading information about your representatives.
+				</div>
+			);
+		}
+
+		if (this.state.representatives) {
+			return (
+				<ul
+					className="c_issue-details--representatives-contact-info--list"
+				>
+				{
+					this.state.representatives.map(
+						rep => (
+							<li
+								key={rep.id}
+							>
+								<ContactInfo
+									memberInfo={rep}
+								/>
+							</li>
+						)
+					)
+				}
+				</ul>
+			);
+		}
+			
+		return (
+			<div>
+				Loading contact information for your representatives.
 			</div>
 		);
 	}
@@ -112,23 +177,7 @@ class IssueDetails extends React.Component {
 					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.state.issue.description)}}
 				/>
 
-				{
-					UserUtils.currentUser.location ?
-						(
-							<ContactInfo
-								chamber="house"
-								state={UserUtils.currentUser.location.state}
-								district={UserUtils.currentUser.location.district}
-							/>
-						) : (
-							<div>
-								You don't have your location set. Update your <Link
-									to={`/profile`}
-								>profile</Link> so that you can see contact information for your
-								members of Congress.
-							</div>
-						)
-				}
+				{this.renderRepresentativesContactInfo()}
 
 				<ImageUpload
 					className={this.state.issue.userIsSubscribed ? "" : "hidden"}

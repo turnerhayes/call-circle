@@ -83,7 +83,7 @@ class IssueForm extends React.Component {
 
 		IssueUtils.saveIssue(dataValues).then(
 			issue => this.props.router.push(`/issues/${issue.id}`)
-		).fail(
+		).catch(
 			// eslint-disable-next-line no-console
 			err => console.error("Error saving issue: ", err)
 		);

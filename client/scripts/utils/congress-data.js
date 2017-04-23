@@ -45,11 +45,18 @@ export default class CongressDataUtils {
 		);
 	}
 
-	static getMemberInfo({ chamber, state, district }) {
-		let url = `/api/congress/${chamber}/${state}`;
+	static getMemberInfo({ chamber = null, state, district }) {
+		let url = "/api/congress/";
 
-		if (chamber === "house") {
-			url += `/${district}`;
+		if (!chamber) {
+			url += `members/${state}/${district}`;
+		}
+		else {
+			url += state;
+
+			if (chamber === "house") {
+				url += `/${district}`;
+			}
 		}
 
 		return Promise.resolve(

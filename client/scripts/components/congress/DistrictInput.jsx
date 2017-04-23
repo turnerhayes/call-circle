@@ -76,7 +76,7 @@ export default class DistrictInput extends React.Component {
 	}
 
 	componentWillMount() {
-		GoogleMaps.then(
+		GoogleMaps.promise.then(
 			google => this.setState({
 				"isLoadingMaps": false,
 				"googleInstance": google

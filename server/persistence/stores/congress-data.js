@@ -1,13 +1,11 @@
 "use strict";
 
-const _       = require("lodash");
 const path    = require("path");
 const Promise = require("bluebird");
 const fs      = Promise.promisifyAll(require("fs"));
 const request = require("request-promise");
 const rfr     = require("rfr");
 const Config  = rfr("server/lib/config");
-const civicInformationAPIKey = rfr("client/scripts/api-keys.json").google.civicInformation.key;
 
 const API_VERSION = 1;
 
@@ -22,41 +20,13 @@ const REQUEST_OPTIONS = {
 	}
 };
 
-function getDistrict({address}) {
-	const queryString = {
-		"key": civicInformationAPIKey,
-		"includeOffices": false,
-		"levels": "country",
-		address
-	};
-
-	return request({
-		"uri": `https://www.googleapis.com/civicinfo/v2/representatives`,
-		"qs": queryString,
-		"type": "GET",
-		"json": true
-	}).then(
-		results => {
-			const state = results.normalizedInput.state;
-
-			const keyRegEx = new RegExp("ocd-division/country:us/state:" + state.toLowerCase() + "/cd:(\\d+)");
-
-			const divisionKeys = Object.keys(results.divisions);
-
-			for (let i = divisionKeys.length - 1; i >= 0; i--) {
-				const matches = keyRegEx.exec(divisionKeys[i]);
-
-				if (matches) {
-					return {
-						"state": results.normalizedInput.state,
-						"district": Number(matches[1])
-					};
-				}
+function ensureCacheDirectory() {
+	return fs.mkdirAsync(CACHE_DIRECTORY).catch(
+		err => {
+			// ignore "this directory already exists" errors
+			if (err.code === "EEXIST") {
+				return;
 			}
-
-			const err = new Error(`Unable to find a district for address ${address}`);
-			err.input = address;
-			err.code = "NO_DISTRICT";
 
 			throw err;
 		}
@@ -79,9 +49,20 @@ exports = module.exports = class CongressDataStore {
 				getAPIURL("house", congress),
 				REQUEST_OPTIONS
 			).then(
-				response =>  {
+				response => {
 					const members = response.results[0].members;
-					fs.writeFile(cacheFile, JSON.stringify(members));
+
+					members.forEach(
+						member => member.chamber = "house"
+					);
+
+					return members;
+				}
+			).then(
+				members =>  {
+					ensureCacheDirectory().then(
+						() => fs.writeFile(cacheFile, JSON.stringify(members), { "encoding": "utf8" })
+					);
 
 					return members;
 				}
@@ -101,7 +82,18 @@ exports = module.exports = class CongressDataStore {
 			).then(
 				response => {
 					const members = response.results[0].members;
-					fs.writeFile(cacheFile, JSON.stringify(members));
+
+					members.forEach(
+						member => member.chamber = "senate"
+					);
+
+					return members;
+				}
+			).then(
+				members => {
+					ensureCacheDirectory().then(
+						() => fs.writeFile(cacheFile, JSON.stringify(members), { "encoding": "utf8" })
+					);
 
 					return members;
 				}
@@ -126,29 +118,25 @@ exports = module.exports = class CongressDataStore {
 		);
 	}
 
-	static getMemberInfo({ chamber, state, district, congress = LATEST_CONGRESS_NUMBER }) {
-		return (
-			chamber === "house" ?
-				CongressDataStore.getHouseMembers({ congress }) :
-				CongressDataStore.getSenateMembers({ congress })
-		).then(
-			members => {
-				if (chamber === "house") {
-					return [_.find(
-						members,
-						{
-							state,
-							district
-						}
-					)];
-				}
+	static getMemberInfo({ state, district, chamber = null, congress = LATEST_CONGRESS_NUMBER }) {
+		const promises = [];
 
-				return _.filter(members, { state });
+		if (!chamber || chamber === "house") {
+			promises.push(CongressDataStore.getHouseMembers({ congress }));
+		}
+
+		if (!chamber || chamber === "senate") {
+			promises.push(CongressDataStore.getSenateMembers({ congress }));
+		}
+
+		return Promise.all(promises).spread(
+			(...members) => {
+				return [].concat(...members).filter(
+					member => member.state === state && (
+						member.chamber === "senate" || Number(member.district) === Number(district)
+					)
+				);
 			}
 		);
-	}
-
-	static getDistrictFromAddress({ address }) {
-		return getDistrict({address});
 	}
 };

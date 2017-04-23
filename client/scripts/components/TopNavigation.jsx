@@ -17,7 +17,7 @@ class TopNavigation extends React.Component {
 		if (UserUtils.currentUser) {
 			userLinkElements = [
 				<span key={uniqueId()}>Logged in as </span>,
-				<Link href={`/profile/${UserUtils.currentUser.username}`} key={uniqueId()}>
+				<Link to="profile" key={uniqueId()}>
 					{UserUtils.currentUser.displayName}
 				</Link>
 			];

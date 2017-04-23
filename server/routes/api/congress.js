@@ -1,5 +1,6 @@
 "use strict";
 
+const _                 = require("lodash");
 const express           = require("express");
 const Promise           = require("bluebird");
 const rfr               = require("rfr");
@@ -64,6 +65,37 @@ router.route("/senate/:state")
 			}).then(
 				res.json.bind(res)
 			).catch(ex => next(ex));
+		}
+	);
+
+router.route("/members/:state/:district")
+	.get(
+		(req, res, next) => {
+			const { state } = req.params;
+			const district = Number(req.params.district);
+
+			if (!state) {
+				const err = new Error("Must specify a state for which to find representatives");
+				err.status = 400;
+
+				next(err);
+				return;
+			}
+
+			if (!district || _.isNaN(district)) {
+				const err = new Error("Must specify a district for which to find representatives");
+				err.status = 400;
+
+				next(err);
+				return;
+			}
+
+			CongressDataStore.getMemberInfo({
+				state,
+				"district": district
+			}).then(
+				res.json.bind(res)
+			).catch(ex => next(ex));	
 		}
 	);
 
