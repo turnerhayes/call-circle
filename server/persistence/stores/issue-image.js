@@ -61,7 +61,7 @@ class IssueImagesStore {
 
 		return isUndefined(imageID) ?
 			IssueImageModel.findAll(options) :
-			IssueImageModel.findById(imageID, options).then(image => [image]);
+			IssueImageModel.findById(imageID, options).then(image => image && [image]);
 	}
 
 	static addIssueImage({ userID, issueID, fileStream, mimeType }) {
@@ -124,7 +124,7 @@ class IssueImagesStore {
 					transaction
 				}).then(
 					image => {
-						if (image.user.id !== deleteByUserID) {
+						if (image.user_id !== deleteByUserID) {
 							throw new AccessForbiddenException(`User ${deleteByUserID} is not allowed to delete image ${imageID}`);
 						}
 

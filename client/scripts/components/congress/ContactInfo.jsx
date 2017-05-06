@@ -1,23 +1,24 @@
-import $       from "jquery";
-import Promise from "bluebird";
-import React   from "react";
-import              "project/styles/congress/contact-info.less";
+import $                  from "jquery";
+import Promise            from "bluebird";
+import React              from "react";
+import ImmutablePropTypes from "react-immutable-proptypes";
+import                         "project/styles/congress/contact-info.less";
 
 function getMemberName(memberInfo, short) {
-	let nameParts = [memberInfo.chamber === "house" ? "Rep." : "Sen."];
+	let nameParts = [memberInfo.get("chamber") === "house" ? "Rep." : "Sen."];
 
 	if (!short) {
-		nameParts.push(memberInfo.first_name);
+		nameParts.push(memberInfo.get("first_name"));
 	}
 
-	if (memberInfo.middle_name && !short) {
-		nameParts.push(memberInfo.middle_name);
+	if (memberInfo.get("middle_name") && !short) {
+		nameParts.push(memberInfo.get("middle_name"));
 	}
 
-	nameParts.push(memberInfo.last_name);
+	nameParts.push(memberInfo.get("last_name"));
 
 	if (!short) {
-		nameParts.push(`(${memberInfo.party})`);
+		nameParts.push(`(${memberInfo.get("party")})`);
 	}
 
 	return nameParts.join(" ");
@@ -25,7 +26,7 @@ function getMemberName(memberInfo, short) {
 
 export default class ContactInfo extends React.Component {
 	static propTypes = {
-		"memberInfo": React.PropTypes.object.isRequired
+		"memberInfo": ImmutablePropTypes.map.isRequired
 	}
 
 	state = {
@@ -37,29 +38,34 @@ export default class ContactInfo extends React.Component {
 	}
 
 	getPhotoUrl = () => {
-		if (this.props.memberInfo.facebook_account) {
+		if (this.props.memberInfo.get("facebook_account")) {
 			this.setState({
-				"profilePhotoURL": `https://graph.facebook.com/${this.props.memberInfo.facebook_account}/picture?type=normal`
+				"profilePhotoURL": `https://graph.facebook.com/${this.props.memberInfo.get("facebook_account")}/picture?type=normal`
 			});
 			return;
 		}
 
-		if (this.props.memberInfo.twitter_account) {
+		if (this.props.memberInfo.get("twitter_account")) {
 			this.setState({
-				"profilePhotoURL": `https://twitter.com/${this.props.memberInfo.twitter_account}/profile_picture?size=bigger`
+				"profilePhotoURL": `https://twitter.com/${this.props.memberInfo.get("twitter_account")}/profile_picture?size=bigger`
 			});
 			return;
 		}
 
-		if (this.props.memberInfo.youtube_account) {
+		if (this.props.memberInfo.get("youtube_account")) {
 			Promise.resolve(
 				$.ajax({
-					"url": `https://www.googleapis.com/youtube/v3/channels?part=snippet&forUsername=${this.props.memberInfo.youtube_account}&key=AIzaSyD2e8FEqjFkytWKVCzlbAviFN1Dh3o7UV8`,
+					"url": `https://www.googleapis.com/youtube/v3/channels?part=snippet&forUsername=${this.props.memberInfo.get("youtube_account")}&key=AIzaSyD2e8FEqjFkytWKVCzlbAviFN1Dh3o7UV8`,
 					"type": "get",
 					"contentType": "json"
 				}).catch(
 					jqXHR => {
-						throw new Error(jqXHR.responseText);
+						throw new Error(
+							(
+								jqXHR.responseJSON && jqXHR.responseJSON.error && jqXHR.responseJSON.error.message
+							) ||
+							jqXHR.responseText
+						);
 					}
 				)
 			).then(
@@ -72,14 +78,14 @@ export default class ContactInfo extends React.Component {
 		const links = [];
 		const memberName = getMemberName(this.props.memberInfo, true);
 
-		if (this.props.memberInfo.facebook_account) {
+		if (this.props.memberInfo.get("facebook_account")) {
 			links.push((
 				<li
-					key={`${this.props.memberInfo.id}-facebook`}
+					key={`${this.props.memberInfo.get("id")}-facebook`}
 				>
 					<a
 						className="btn fa fa-facebook"
-						href={`https://facebook.com/${this.props.memberInfo.facebook_account}`}
+						href={`https://facebook.com/${this.props.memberInfo.get("facebook_account")}`}
 						aria-label={`${memberName}'s Facbook page`}
 						title={`${memberName}'s Facbook page`}
 						target="_blank"
@@ -89,14 +95,14 @@ export default class ContactInfo extends React.Component {
 			));
 		}
 
-		if (this.props.memberInfo.twitter_account) {
+		if (this.props.memberInfo.get("twitter_account")) {
 			links.push((
 				<li
-					key={`${this.props.memberInfo.id}-twitter`}
+					key={`${this.props.memberInfo.get("id")}-twitter`}
 				>
 					<a
 						className="btn fa fa-twitter"
-						href={`https://twitter.com/${this.props.memberInfo.twitter_account}`}
+						href={`https://twitter.com/${this.props.memberInfo.get("twitter_account")}`}
 						aria-label={`${memberName}'s Twitter feed`}
 						title={`${memberName}'s Twitter feed`}
 						target="_blank"
@@ -106,14 +112,14 @@ export default class ContactInfo extends React.Component {
 			));
 		}
 
-		if (this.props.memberInfo.youtube_account) {
+		if (this.props.memberInfo.get("youtube_account")) {
 			links.push((
 				<li
-					key={`${this.props.memberInfo.id}-youtube`}
+					key={`${this.props.memberInfo.get("id")}-youtube`}
 				>
 					<a
 						className="btn fa fa-youtube-play"
-						href={`https://youtube.com/${this.props.memberInfo.youtube_account}`}
+						href={`https://youtube.com/${this.props.memberInfo.get("youtube_account")}`}
 						aria-label={`${memberName}'s Youtube channel`}
 						title={`${memberName}'s Youtube channel`}
 						target="_blank"
@@ -135,65 +141,65 @@ export default class ContactInfo extends React.Component {
 	render() {
 		const contactInfoItems = [];
 
-		if (this.props.memberInfo.phone) {
+		if (this.props.memberInfo.get("phone")) {
 			contactInfoItems.push(
 				<dt
-					key={`${this.props.memberInfo.id}-phone-label`}
+					key={`${this.props.memberInfo.get("id")}-phone-label`}
 				>Phone:</dt>,
 				(
 				<dd
-					key={`${this.props.memberInfo.id}-phone-content`}
+					key={`${this.props.memberInfo.get("id")}-phone-content`}
 				>
-					<a href={`tel:${this.props.memberInfo.phone}`}>{this.props.memberInfo.phone}</a>
+					<a href={`tel:${this.props.memberInfo.get("phone")}`}>{this.props.memberInfo.get("phone")}</a>
 				</dd>
 				)
 			);
 		}
 
-		if (this.props.memberInfo.fax) {
+		if (this.props.memberInfo.get("fax")) {
 			contactInfoItems.push(
 				<dt
-					key={`${this.props.memberInfo.id}-fax-label`}
+					key={`${this.props.memberInfo.get("id")}-fax-label`}
 				>Fax:</dt>,
 				(
 				<dd
-					key={`${this.props.memberInfo.id}-fax-content`}
+					key={`${this.props.memberInfo.get("id")}-fax-content`}
 				>
-					<a href={`fax:${this.props.memberInfo.fax}`}>{this.props.memberInfo.fax}</a>
+					<a href={`fax:${this.props.memberInfo.get("fax")}`}>{this.props.memberInfo.get("fax")}</a>
 				</dd>
 				)
 			);
 		}
 
-		if (this.props.memberInfo.url) {
+		if (this.props.memberInfo.get("url")) {
 			contactInfoItems.push(
 				<dt
-					key={`${this.props.memberInfo.id}-website-label`}
+					key={`${this.props.memberInfo.get("id")}-website-label`}
 				>Website:</dt>,
 				(
 				<dd
-					key={`${this.props.memberInfo.id}-website-content`}
+					key={`${this.props.memberInfo.get("id")}-website-content`}
 				>
 					<a
-						href={this.props.memberInfo.url}
+						href={this.props.memberInfo.get("url")}
 						target="_blank"
-					>{this.props.memberInfo.url}</a>
+					>{this.props.memberInfo.get("url")}</a>
 				</dd>
 				)
 			);
 		}
 
-		if (this.props.memberInfo.office) {
+		if (this.props.memberInfo.get("office")) {
 			contactInfoItems.push(
 				<dt
-					key={`${this.props.memberInfo.id}-office-label`}
+					key={`${this.props.memberInfo.get("id")}-office-label`}
 				>D.C. Office:</dt>,
 				(
 				<dd
-					key={`${this.props.memberInfo.id}-office-content`}
+					key={`${this.props.memberInfo.get("id")}-office-content`}
 				>
 					<p>
-						{this.props.memberInfo.office}
+						{this.props.memberInfo.get("office")}
 						<br />
 						{/*Washington, D.C. 20515*/}
 					</p>

@@ -69,20 +69,20 @@ const IssueModel = DB.define("issue",
 						{
 							"deadline": null
 						},
-						{
-							"deadline": {
-								"$gte": Sequelize.literal("CURRENT_TIMESTAMP")
-							}
-						}
+						Sequelize.where(
+							Sequelize.fn("date_trunc", "day", Sequelize.col("deadline")),
+							">=",
+							Sequelize.fn("date_trunc", "day", Sequelize.literal("CURRENT_TIMESTAMP"))
+						)
 					]
 				}
 			},
 			"expired": {
-				"where": {
-					"deadline": {
-						"$lt": Sequelize.literal("CURRENT_TIMESTAMP")
-					}
-				}
+				"where": Sequelize.where(
+					Sequelize.fn("date_trunc", "day", Sequelize.col("deadline")),
+					">",
+					Sequelize.fn("date_trunc", "day", Sequelize.literal("CURRENT_TIMESTAMP"))
+				)
 			}
 		},
 		"getterMethods": {

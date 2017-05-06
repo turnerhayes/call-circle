@@ -1,5 +1,16 @@
-import $ from "jquery";
-import Promise from "bluebird";
+import $          from "jquery";
+import Promise    from "bluebird";
+import { fromJS } from "immutable";
+
+
+// TODO: factor out of individual utils
+function getErrorMessageFromXHR(jqXHR) {
+	return jqXHR.responseJSON &&
+	jqXHR.responseJSON.error &&
+	jqXHR.responseJSON.error.message ?
+		jqXHR.responseJSON.error.message :
+		jqXHR.responseText;
+}
 
 let _currentUser;
 
@@ -39,8 +50,20 @@ class UserUtils {
 					_currentUser = user;
 				}
 
-				return user;
+				return fromJS(user);
 			}
+		);
+	}
+
+	static getSubscriptionsForUser({ userID }) {
+		return Promise.resolve(
+			$.ajax({
+				"url": `/api/users/${userID}/subscriptions`,
+				"type": "GET",
+				"dataType": "json"
+			}).then(
+				subscriptions => fromJS(subscriptions)
+			).catch(jqXHR => getErrorMessageFromXHR(jqXHR))
 		);
 	}
 }

@@ -185,10 +185,7 @@ class IssuesStore {
 		);
 	}
 
-	static subscribeToIssue(options) {
-		options = options || {};
-		const { issueID, userID } = options;
-
+	static subscribeToIssue({ issueID, userID }) {
 		assert(issueID, '"issueID" parameter in "IssuesStore.subscribeToIssue" is missing');
 		assert(userID, '"userID" parameter in "IssuesStore.subscribeToIssue" is missing');
 
@@ -206,18 +203,17 @@ class IssuesStore {
 					msg = `Issue ${issueID} was not found`;
 				}
 				else {
-					msg = err.msg;
+					msg = err.message;
 				}
 
 				Loggers.errors.error(`Error subscribing user ${userID} to issue ${issueID}: ${msg}`);
+
+				throw new Error(msg);
 			}
 		);
 	}
 
-	static unsubscribeFromIssue(options) {
-		options = options || {};
-		const { issueID, userID } = options;
-
+	static unsubscribeFromIssue({ issueID, userID }) {
 		assert(issueID, '"issueID" parameter in "IssuesStore.unsubscribeFromIssue" is missing');
 		assert(userID, '"userID" parameter in "IssuesStore.unsubscribeFromIssue" is missing');
 
@@ -235,10 +231,12 @@ class IssuesStore {
 					msg = `Issue ${issueID} was not found`;
 				}
 				else {
-					msg = err.msg;
+					msg = err.message;
 				}
 
 				Loggers.errors.error(`Error unsubscribing user ${userID} from issue ${issueID}: ${msg}`);
+	
+				throw new Error(msg);
 			}
 		);
 	}

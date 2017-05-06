@@ -6,6 +6,7 @@ const express                  = require("express");
 const sharp                    = require("sharp");
 const HTTPStatusCodes          = require("http-status-codes");
 const rfr                      = require("rfr");
+const { mustAuthenticate }     = rfr("server/routes/utils");
 const Config                   = rfr("server/lib/config");
 const IssuesStore              = rfr("server/persistence/stores/issue");
 const IssueImagesStore         = rfr("server/persistence/stores/issue-image");
@@ -24,6 +25,15 @@ function processIssue(req, issue) {
 		issue.isUserSubscribed(req.user);
 
 	return issueJSON;
+}
+
+function processImage(req, image) {
+	return {
+		"id": image.id,
+		"userID": image.user_id,
+		"issueID": image.issue_id,
+		"location": `${req.baseUrl}/${image.issue_id}/images/${image.id}`
+	};
 }
 
 function getImageFromRequest(req) {
@@ -78,6 +88,7 @@ function getImageFromRequest(req) {
 
 router.route("/")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			const userID = req.query.userid || req.user.id;
 
@@ -98,15 +109,8 @@ router.route("/")
 			}
 		}
 	).post(
+		mustAuthenticate("You must be logged in to create an issue"),
 		(req, res, next) => {
-			if (!req.user) {
-				const err = new Error("You must be logged in to create an issue");
-				err.status = HTTPStatusCodes.FORBIDDEN;
-
-				next(err);
-				return;
-			}
-
 			IssuesStore.createIssue(
 				_.extend(
 					{
@@ -122,6 +126,7 @@ router.route("/")
 
 router.route("/search")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			const searchArgs = req.query;
 
@@ -140,6 +145,7 @@ router.route("/search")
 
 router.route("/:issueID")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			const options = {
 				"currentUser": req.user,
@@ -161,6 +167,7 @@ router.route("/:issueID")
 			);
 		}
 	).post(
+		mustAuthenticate("You must be logged in to update an issue"),
 		(req, res, next) => {
 			const issue = req.body;
 
@@ -187,15 +194,8 @@ router.route("/:issueID")
 
 router.route("/:issueID/subscribe")
 	.post(
+		mustAuthenticate("You must be logged in to subscribe to an issue"),
 		(req, res, next) => {
-			if (!req.user) {
-				const err = new Error("You must be logged in to subscribe to an issue");
-				err.status = HTTPStatusCodes.FORBIDDEN;
-
-				next(err);
-				return;
-			}
-
 			IssuesStore.subscribeToIssue({
 				"issueID": Number(req.params.issueID),
 				"userID": req.user.id
@@ -207,15 +207,8 @@ router.route("/:issueID/subscribe")
 
 router.route("/:issueID/unsubscribe")
 	.post(
+		mustAuthenticate("You must be logged in to unsubscribe from an issue"),
 		(req, res, next) => {
-			if (!req.user) {
-				const err = new Error("You must be logged in to unsubscribe from an issue");
-				err.status = HTTPStatusCodes.FORBIDDEN;
-
-				next(err);
-				return;
-			}
-
 			IssuesStore.unsubscribeFromIssue({
 				"issueID": Number(req.params.issueID),
 				"userID": req.user.id
@@ -227,15 +220,8 @@ router.route("/:issueID/unsubscribe")
 
 router.route("/:issueID/images")
 	.get(
+		mustAuthenticate("You must be logged in to view images for an issue"),
 		(req, res, next) => {
-			if (!req.user) {
-				const err = new Error("You must be logged in to view images for an issue");
-				err.status = HTTPStatusCodes.FORBIDDEN;
-
-				next(err);
-				return;
-			}
-
 			const userID = Number(req.query.userid) || req.user.id;
 			const issueID = req.params.issueID;
 
@@ -244,24 +230,15 @@ router.route("/:issueID/images")
 				userID
 			}).then(
 				images => res.json(
-					images.reduce(
-						(out, image) => {
-							out.push({
-								"id": image.id,
-								"userID": image.user_id,
-								"issueID": image.issue_id,
-								"location": `${req.baseUrl}/${issueID}/images/${image.id}`
-							});
-
-							return out;
-						},
-						[]
+					images.map(
+						processImage.bind(null, req)
 					)
 				)
 			).catch(ex => next(ex));
 		}
 	)
 	.post(
+		mustAuthenticate("You must be logged in to upload an image for an issue"),
 		(req, res, next) => {
 			return getImageFromRequest(req).then(
 				file => {
@@ -281,7 +258,7 @@ router.route("/:issueID/images")
 					}).then(
 						image => res.status(HTTPStatusCodes.CREATED)
 							.location(`${req.baseUrl}/${issueID}/images/${image.id}`)
-							.end()
+							.json(processImage(req, image))
 					).catch(ex => next(ex));
 				}
 			);
@@ -290,19 +267,14 @@ router.route("/:issueID/images")
 
 router.route("/:issueID/images/:imageID")
 	.get(
+		mustAuthenticate("You must be logged in to view an image for an issue"),
 		(req, res, next) => {
-			if (!req.user) {
-				const err = new Error("You must be logged in to view an image for an issue");
-				err.status = HTTPStatusCodes.FORBIDDEN;
-
-				next(err);
-				return;
-			}
-
 			IssueImagesStore.findIssueImage({
 				"imageID": req.params.imageID
 			}).then(
-				image => res.sendFile(image.path)
+				image => {
+					res.sendFile(image.path);
+				}
 			).catch(
 				ex => {
 					if (NotFoundException.isThisException(ex)) {
@@ -316,9 +288,10 @@ router.route("/:issueID/images/:imageID")
 		}
 	)
 	.delete(
+		mustAuthenticate("You must be logged in to delete an image for an issue"),
 		(req, res, next) => {
 			if (!req.user) {
-				const err = new Error("You must be logged in to delete an image for an issue");
+				const err = new Error();
 				err.status = HTTPStatusCodes.FORBIDDEN;
 
 				next(err);

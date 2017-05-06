@@ -8,9 +8,6 @@ const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 const CLIENT_PATH = path.join(PROJECT_ROOT, "client");
 const DIST_PATH = path.join(PROJECT_ROOT, "dist");
 
-const ENVIRONMENT = process.env.NODE_ENV || "development";
-const IS_DEVELOPMENT = ENVIRONMENT === "development";
-
 const DEFAULT_PORT = 4000;
 
 const PORT = Number(process.env.PORT) || DEFAULT_PORT;
@@ -61,8 +58,8 @@ const SESSION_DB_URL = process.env.SESSION_DB_URL ||
 
 const Config = {
 	"app": {
-		"environment": ENVIRONMENT,
-		"isDevelopment": IS_DEVELOPMENT,
+		"environment": sharedConfig.app.environment,
+		"isDevelopment": sharedConfig.app.isDevelopment,
 		"address": {
 			"host": HOST,
 			"insecurePort": Number(process.env.APP_ADDRESS_INSECURE_PORT),
@@ -118,7 +115,7 @@ const Config = {
 			"file": process.env.LOGGING_SQL_FILE ?
 				path.resolve(PROJECT_ROOT, process.env.LOGGING_SQL_FILE) :
 				(
-					IS_DEVELOPMENT ?
+					sharedConfig.app.isDevelopment ?
 						null :
 						false
 				)

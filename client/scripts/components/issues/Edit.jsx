@@ -1,28 +1,26 @@
-import React      from "react";
-import IssueForm  from "project/scripts/components/issues/IssueForm";
-import IssueUtils from "project/scripts/utils/issue";
+import React              from "react";
+import PropTypes          from "prop-types";
+import ImmutablePropTypes from "react-immutable-proptypes";
+import { connect }        from "react-redux";
+import {
+	fetchIssueByID
+}                         from "project/scripts/redux/actions";
+import IssueForm          from "project/scripts/components/issues/IssueForm";
 
 const CONTAINER_CLASS = "edit-issue-container";
 
 class EditIssue extends React.Component {
 	static propTypes = {
-		"issueID": React.PropTypes.number.isRequired
-	}
-
-	state = {
-		"issue": null,
-		"issueLoadError": null
+		"issueID": PropTypes.number.isRequired,
+		"issue": ImmutablePropTypes.map,
+		"issueLoadError": PropTypes.object,
+		"dispatch": PropTypes.func.isRequired
 	}
 
 	componentWillMount() {
-		IssueUtils.findByID(this.props.issueID).then(
-			issue => {
-				this.setState({
-					"issue": issue
-				});
-			},
-			ex => this.setState({"issueLoadError": ex})
-		);
+		if (!this.props.issue) {
+			this.props.dispatch(fetchIssueByID({ "issueID": this.props.issueID }));
+		}
 	}
 
 	renderForm() {
@@ -30,7 +28,7 @@ class EditIssue extends React.Component {
 			<div className={CONTAINER_CLASS}>
 				<h2>Edit an Issue</h2>
 				<IssueForm
-					issue={this.state.issue}
+					issue={this.props.issue}
 				/>
 			</div>
 		);
@@ -57,12 +55,30 @@ class EditIssue extends React.Component {
 	}
 
 	render() {
-		if (this.state.issueLoadError) {
+		if (this.props.issueLoadError) {
 			return this.renderLoadError();
 		}
 
-		return this.state.issue ? this.renderForm() : this.renderIssueLoading();
+		return this.props.issue ? this.renderForm() : this.renderIssueLoading();
 	}
 }
 
-export default EditIssue;
+export default connect(
+	(state, ownProps) => {
+		const { issueID } = ownProps;
+		const issues = state.get("issues");
+		const props = {
+			issueID
+		};
+
+		if (issues.get("issueLoadError")) {
+			props.issueLoadError = issues.get("issueLoadError");
+		}
+		else {
+			props.issue = issues && issues.get("items") &&
+				issues.get("items").find(issue => issue.get("id") === issueID);
+		}
+
+		return props;
+	}
+)(EditIssue);

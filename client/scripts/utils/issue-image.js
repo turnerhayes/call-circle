@@ -1,32 +1,44 @@
-import $       from "jquery";
-import Promise from "bluebird";
-import assert  from "assert";
+import $          from "jquery";
+import Promise    from "bluebird";
+import assert     from "assert";
+import { fromJS } from "immutable";
+
+// TODO: factor out of individual utils
+function getErrorMessageFromXHR(jqXHR) {
+	return jqXHR.responseJSON &&
+	jqXHR.responseJSON.error &&
+	jqXHR.responseJSON.error.message ?
+		jqXHR.responseJSON.error.message :
+		jqXHR.responseText;
+}
 
 export default class IssueImageUtils {
-	static getImages({ issue, user = null }) {
-		assert(issue, "'issue' argument required for 'getImages()'");
+	static getImages({ issueID, user = null }) {
+		assert(issueID, "'issueID' argument required for 'getImages()'");
 
 		const query = user ? `?userid=${user.id}`: "";
 
 		return Promise.resolve(
 			$.ajax({
-				"url": `/api/issues/${issue.id}/images${query}`,
+				"url": `/api/issues/${issueID}/images${query}`,
 				"type": "get"
-			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+			}).then(
+				images => fromJS(images)
+			).catch(
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
 	}
 
-	static uploadImage({ issue, file }) {
-		assert(issue, "'issue' argument required for 'uploadImage()'");
+	static uploadImage({ issueID, file }) {
+		assert(issueID, "'issueID' argument required for 'uploadImage()'");
 		assert(file, "'file' argument required for 'uploadImage()'");
 
 		const timestamp = new Date().toISOString();
 
-		file.filename = `image-issue${issue.id}-${timestamp}`;
+		file.filename = `image-issue${issueID}-${timestamp}`;
 
 		const data = new FormData();
 
@@ -34,14 +46,14 @@ export default class IssueImageUtils {
 
 		return Promise.resolve(
 			$.ajax({
-				"url": `/api/issues/${issue.id}/images`,
+				"url": `/api/issues/${issueID}/images`,
 				"type": "post",
 				"contentType": false,
 				"processData": false,
 				"data": data
-			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+			}).then(image => fromJS(image)).catch(
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
@@ -52,11 +64,13 @@ export default class IssueImageUtils {
 
 		return Promise.resolve(
 			$.ajax({
-				"url": `/api/issues/${image.issueID}/images/${image.id}`,
+				"url": `/api/issues/${image.get("issueID")}/images/${image.get("id")}`,
 				"type": "delete"
-			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+			}).then(
+				() => image
+			).catch(
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);

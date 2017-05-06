@@ -81,7 +81,7 @@ class IssueForm extends React.Component {
 			dataValues.deadline = dataValues.deadline.toDate();
 		}
 
-		IssueUtils.saveIssue(dataValues).then(
+		IssueUtils.saveIssue({"issue": dataValues}).then(
 			issue => this.props.router.push(`/issues/${issue.id}`)
 		).catch(
 			// eslint-disable-next-line no-console

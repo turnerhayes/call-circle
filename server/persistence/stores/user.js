@@ -1,8 +1,11 @@
 "use strict";
 
+const Sequelize         = require("sequelize");
 const rfr               = require("rfr");
-const UserModel         = rfr("server/persistence/models").User;
+const Models            = rfr("server/persistence/models");
 const NotFoundException = rfr("server/persistence/exceptions/not-found");
+
+const UserModel = Models.User;
 
 class UserStore {
 	static findByID(id) {
@@ -62,6 +65,35 @@ class UserStore {
 				}
 			}
 		);
+	}
+
+	static getIssueSubscriptions({ userID, includeDeleted, includeExpired }) {
+		const options = {
+			"attributes": ["issue_id"],
+			"where": { "user_id": userID },
+		};
+
+		if (!includeDeleted || !includeExpired) {
+			const scopes = [];
+
+			if (!includeExpired) {
+				scopes.push("inProgress");
+			}
+
+			if (!includeDeleted) {
+				scopes.push("not-deleted");
+			}
+			options.include = [
+				{
+					"model": scopes.length === 0 ?
+						Models.Issue :
+						Models.Issue.scope(...scopes),
+					"attributes": []
+				}
+			];
+		}
+
+		return Models.UserIssues.findAll(options);
 	}
 }
 

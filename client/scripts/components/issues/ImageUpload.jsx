@@ -1,66 +1,42 @@
-import { isEmpty }     from "lodash";
-import React           from "react";
-import Dropzone        from "react-dropzone";
-import Config          from "project/shared-lib/config";
-import IssueImageUtils from "project/scripts/utils/issue-image";
-import                      "project/styles/issues/image-upload.less";
+import { isEmpty }        from "lodash";
+import React              from "react";
+import PropTypes          from "prop-types";
+import ImmutablePropTypes from "react-immutable-proptypes";
+import Dropzone           from "react-dropzone";
+import Config             from "project/shared-lib/config";
+import                         "project/styles/issues/image-upload.less";
 
 export default class ImageUpload extends React.Component {
 	static propTypes = {
-		"issue": React.PropTypes.object.isRequired,
-		"className": React.PropTypes.string
+		"issue": PropTypes.object.isRequired,
+		"userIssueImages": ImmutablePropTypes.listOf(
+			ImmutablePropTypes.map
+		),
+		"className": PropTypes.string,
+		"onDeleteImage": PropTypes.func,
+		"onUploadImage": PropTypes.func.isRequired,
 	}
 
 	state = {
 		"image": null,
-		"userImages": null,
 		"expandedImage": null
 	}
 
-	setIssueImages = issue => {
-		IssueImageUtils.getImages({
-			issue
-		}).then(
-			userImages => this.setState({ userImages })
-		);
-	}
-
-	componentWillMount = () => {
-		this.setIssueImages(this.props.issue);
-	}
-
-	componentWillReceiveProps = nextProps => {
-		if (nextProps.issue.id !== this.props.issue.id) {
-			this.setIssueImages(nextProps.issue);
-		}
-	}
-
-	handleImageSelect = (accepted) => {
+	handleImageSelect = accepted => {
 		if (accepted.length > 0) {
 			this.setState({"image": accepted[0]});
 		}
 	}
 
-	handleFormSubmit = (event) => {
+	handleFormSubmit = event => {
 		event.preventDefault();
 
-		IssueImageUtils.uploadImage({
-			"issue": this.props.issue,
-			"file": this.state.image
-		});
+		this.props.onUploadImage(this.state.image);
 	}
 
 	deleteImage = image => {
 		if (confirm("Are you sure you want to delete this image?")) {
-			IssueImageUtils.deleteImage({
-				image
-			}).then(
-				() => this.setState({
-					"userImages": this.state.userImages.filter(
-						img => img.id !== image.id
-					)
-				})
-			);
+			this.props.onDeleteImage(image);
 		}
 	}
 
@@ -151,35 +127,39 @@ export default class ImageUpload extends React.Component {
 					}
 					</Dropzone>
 					{
-						isEmpty(this.state.userImages) ?
+						isEmpty(this.props.userIssueImages) ?
 							"" :
 							(
 								<ul
 									className="user-images"
 								>
 									{
-										this.state.userImages.map(
+										this.props.userIssueImages.map(
 											image => (
 												<li
-													key={`user-image-${image.id}`}
+													key={`user-image-${image.get("id")}`}
 													className="user-image"
 												>
 													<img
-														onClick={() => this.setState({ "expandedImage": image.location })}
-														src={image.location}
+														onClick={() => this.setState({ "expandedImage": image.get("location") })}
+														src={image.get("location")}
 													/>
-													<div
-														className="delete-image-button fa-stack"
-														onClick={() => this.deleteImage(image)}
-														role="button"
-													>
-														<span
-															className="fa fa-circle fa-stack-2x"
-														></span>
-														<span
-															className="fa fa-trash-o fa-inverse fa-stack-1x"
-														></span>
-													</div>
+													{
+														this.props.onDeleteImage && (
+															<div
+																className="delete-image-button fa-stack"
+																onClick={() => this.deleteImage(image)}
+																role="button"
+															>
+																<span
+																	className="fa fa-circle fa-stack-2x"
+																></span>
+																<span
+																	className="fa fa-trash-o fa-inverse fa-stack-1x"
+																></span>
+															</div>
+														)
+													}
 												</li>
 											)
 										)

@@ -163,7 +163,8 @@ app.use(raise404);
 
 /// error handlers
 
-app.use(function(err, req, res) {
+// eslint-disable-next-line no-unused-vars
+app.use(function(err, req, res, next) {
 	res.status(err.status || HTTPStatusCodes.INTERNAL_SERVER_ERROR);
 
 	const errData = {
@@ -177,7 +178,7 @@ app.use(function(err, req, res) {
 	};
 
 	if (err.status !== HTTPStatusCodes.NOT_FOUND) {
-		Loggers.error.error(err);
+		Loggers.errors.error(err);
 	}
 
 	res.format({

@@ -1,15 +1,17 @@
 "use strict";
 
-const _                 = require("lodash");
-const express           = require("express");
-const Promise           = require("bluebird");
-const rfr               = require("rfr");
-const CongressDataStore = rfr("server/persistence/stores/congress-data");
+const _                    = require("lodash");
+const express              = require("express");
+const Promise              = require("bluebird");
+const rfr                  = require("rfr");
+const { mustAuthenticate } = rfr("server/routes/utils");
+const CongressDataStore    = rfr("server/persistence/stores/congress-data");
 
 const router = express.Router();
 
 router.route("/chambers")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			Promise.all([
 				CongressDataStore.getHouseMembers(),
@@ -27,6 +29,7 @@ router.route("/chambers")
 
 router.route("/house")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			CongressDataStore.getHouseMembers().then(
 				res.json.bind(res)
@@ -36,6 +39,7 @@ router.route("/house")
 
 router.route("/house/:state/:district")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			CongressDataStore.getMemberInfo({
 				"chamber": "house",
@@ -49,6 +53,7 @@ router.route("/house/:state/:district")
 
 router.route("/senate")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			CongressDataStore.getSenateMembers().then(
 				res.json.bind(res)
@@ -58,6 +63,7 @@ router.route("/senate")
 
 router.route("/senate/:state")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			CongressDataStore.getMemberInfo({
 				"chamber": "senate",
@@ -70,6 +76,7 @@ router.route("/senate/:state")
 
 router.route("/members/:state/:district")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			const { state } = req.params;
 			const district = Number(req.params.district);
@@ -101,6 +108,7 @@ router.route("/members/:state/:district")
 
 router.route("/districts")
 	.get(
+		mustAuthenticate(),
 		(req, res, next) => {
 			CongressDataStore.getDistricts().then(
 				res.json.bind(res)

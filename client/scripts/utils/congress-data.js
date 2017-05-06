@@ -1,6 +1,16 @@
-import $       from "jquery";
-import Promise from "bluebird";
-import APIKeys from "project/scripts/api-keys.json";
+import $          from "jquery";
+import Promise    from "bluebird";
+import { fromJS } from "immutable";
+import APIKeys    from "project/scripts/api-keys.json";
+
+// TODO: factor out of individual utils
+function getErrorMessageFromXHR(jqXHR) {
+	return jqXHR.responseJSON &&
+	jqXHR.responseJSON.error &&
+	jqXHR.responseJSON.error.message ?
+		jqXHR.responseJSON.error.message :
+		jqXHR.responseText;
+}
 
 export default class CongressDataUtils {
 	static getDistricts() {
@@ -10,9 +20,11 @@ export default class CongressDataUtils {
 				"dataType": "json",
 				"type": "get"
 			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
+			).then(
+				districts => fromJS(districts)
 			)
 		);
 	}
@@ -24,9 +36,11 @@ export default class CongressDataUtils {
 				"dataType": "json",
 				"type": "get"
 			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
+			).then(
+				members => fromJS(members)
 			)
 		);
 	}
@@ -38,9 +52,11 @@ export default class CongressDataUtils {
 				"dataType": "json",
 				"type": "get"
 			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
+			).then(
+				members => fromJS(members)
 			)
 		);
 	}
@@ -64,9 +80,11 @@ export default class CongressDataUtils {
 				"url": url,
 				"type": "get"
 			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
+			).then(
+				members => fromJS(members)
 			)
 		);
 	}
@@ -84,8 +102,8 @@ export default class CongressDataUtils {
 				},
 				"type": "get"
 			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			).then(
 				results => {
@@ -112,6 +130,8 @@ export default class CongressDataUtils {
 
 					throw err;
 				}
+			).then(
+				district => fromJS(district)
 			)
 		);
 	}

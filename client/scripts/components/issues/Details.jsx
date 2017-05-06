@@ -1,70 +1,103 @@
-import React                from "react";
-import { Link, withRouter } from "react-router";
-import { markdown }         from "markdown";
-import ImageUpload          from "project/scripts/components/issues/ImageUpload";
-import ContactInfo          from "project/scripts/components/congress/ContactInfo";
-import IssueUtils           from "project/scripts/utils/issue";
-import UserUtils            from "project/scripts/utils/user";
-import CongressDataUtils    from "project/scripts/utils/congress-data";
-import Categories           from "project/shared-lib/categories";
-import                           "project/styles/issues/details.less";
+import { isEmpty }             from "lodash";
+import React                   from "react";
+import PropTypes               from "prop-types";
+import ImmutablePropTypes      from "react-immutable-proptypes";
+import { Link, withRouter }    from "react-router";
+import { connect }             from "react-redux";
+import { markdown }            from "markdown";
+import ImageUpload             from "project/scripts/components/issues/ImageUpload";
+import IssueSubscriptionToggle from "project/scripts/components/issues/SubscriptionToggle";
+import ContactInfo             from "project/scripts/components/congress/ContactInfo";
+import IssueUtils              from "project/scripts/utils/issue";
+import UserUtils               from "project/scripts/utils/user";
+import {
+	fetchIssueByID,
+	fetchIssueImages,
+	uploadIssueImage,
+	deleteIssueImage,
+	getCongressionalRepresentatives,
+}                              from "project/scripts/redux/actions";
+import Categories              from "project/shared-lib/categories";
+import                              "project/styles/issues/details.less";
 
 const ISSUE_DETAILS_CONTAINER_CLASS = "c_issue-details";
 
 class IssueDetails extends React.Component {
 	static propTypes = {
-		"issueID": React.PropTypes.number.isRequired
+		"issueID": PropTypes.number.isRequired,
+		"issue": PropTypes.object,
+		"userIssueImages": ImmutablePropTypes.listOf(
+			ImmutablePropTypes.map
+		),
+		"issueLoadError": PropTypes.object,
+		"representatives": ImmutablePropTypes.listOf(
+			ImmutablePropTypes.map
+		),
+		"representativesLoadError": PropTypes.object,
+		"dispatch": PropTypes.func.isRequired
 	}
 
 	state = {
-		"issue": null,
-		"issueLoadError": null,
 		"canToggleSubscription": true,
-		"representatives": null,
-		"representativesLoadError": null
 	}
 
 	componentWillMount() {
-		IssueUtils.findByID(this.props.issueID, {
-			"includeUsers": true
-		}).then(
-			issue => this.setState({issue}),
-			ex => this.setState({"issueLoadError": ex})
-		);
+		this.fetchData();
+	}
 
-		this.getRepresentatives();
+	componentWillReceiveProps() {
+		this.fetchData();
+	}
+
+	fetchData = () => {
+		if (this.props.issue) {
+			if (!this.props.representatives && !this.props.representativesLoadError) {
+				this.getRepresentatives();
+			}
+
+			if (!this.props.userIssueImages) {
+				this.props.dispatch(fetchIssueImages({ "issueID": this.props.issueID }));
+			}
+		}
+		else {
+			this.props.dispatch(fetchIssueByID({ "issueID": this.props.issueID }));
+		}
 	}
 
 	handleSubscribeButtonClick = () => {
-		const isSubscribing = !this.state.issue.userIsSubscribed;
-		this.setState({"canToggleSubscription": false});
+		// const isSubscribing = !this.props.issue.get("userIsSubscribed");
+		// this.setState({"canToggleSubscription": false});
 
-		(
-			isSubscribing ?
-				IssueUtils.subscribeToIssue(this.state.issue) :
-				IssueUtils.unsubscribeFromIssue(this.state.issue)
-		).then(
-			() => {
-				const issue = this.state.issue;
+		// (
+		// 	isSubscribing ?
+		// 		IssueUtils.subscribeToIssue({"issue": this.props.issue}) :
+		// 		IssueUtils.unsubscribeFromIssue({"issue": this.props.issue})
+		// ).then(
+		// 	() => {
+		// 		const issue = this.props.issue;
 
-				issue.userIsSubscribed = isSubscribing;
+		// 		issue.userIsSubscribed = isSubscribing;
 
-				this.setState({ issue });
-			}
-		).finally(
-			() => this.setState({ "canToggleSubscription": true })
-		);
+		// 		this.setState({ issue });
+		// 	}
+		// ).finally(
+		// 	() => this.setState({ "canToggleSubscription": true })
+		// );
+	}
+
+	handleDeleteImage = image => {
+		this.props.dispatch(deleteIssueImage({ image }));
+	}
+
+	handleUploadImage = file => {
+		this.props.dispatch(uploadIssueImage({ "issueID": this.props.issueID, file }));
 	}
 
 	getRepresentatives = () => {
-		CongressDataUtils.getMemberInfo({
+		this.props.dispatch(getCongressionalRepresentatives({
 			"state": UserUtils.currentUser.location.state,
 			"district": UserUtils.currentUser.location.district
-		}).then(
-			representatives => this.setState({ representatives })
-		).catch(
-			representativesLoadError => this.setState({ representativesLoadError })
-		);
+		}));
 	}
 
 	renderIssueLoading = () => {
@@ -90,7 +123,7 @@ class IssueDetails extends React.Component {
 			);
 		}
 
-		if (this.state.representativesLoadError) {
+		if (this.props.representativesLoadError) {
 			return (
 				<div>
 					Error loading information about your representatives.
@@ -98,16 +131,16 @@ class IssueDetails extends React.Component {
 			);
 		}
 
-		if (this.state.representatives) {
+		if (this.props.representatives) {
 			return (
 				<ul
 					className="c_issue-details--representatives-contact-info--list"
 				>
 				{
-					this.state.representatives.map(
+					this.props.representatives.map(
 						rep => (
 							<li
-								key={rep.id}
+								key={rep.get("id")}
 							>
 								<ContactInfo
 									memberInfo={rep}
@@ -128,41 +161,28 @@ class IssueDetails extends React.Component {
 	}
 
 	renderIssue() {
-		const subscribeButtonLabel = this.state.issue.userIsSubscribed ?
-			"Unsubscribe from this issue" :
-			"Subscribe to this issue";
-
-		const subscribeButtonIcon = this.state.issue.userIsSubscribed ?
-			"minus" :
-			"plus";
-
 		return (
 			<div className={ISSUE_DETAILS_CONTAINER_CLASS}>
 				<header className="issue-header">
 					<h1 className="issue-title">
 						<span
-							className={`category fa fa-${IssueUtils.CATEGORY_ICON_MAP[this.state.issue.category]}`}
-							aria-label={`Category: ${Categories[this.state.issue.category].name}`}
-							title={`Category: ${Categories[this.state.issue.category].name}`}
+							className={`category fa fa-${IssueUtils.CATEGORY_ICON_MAP[this.props.issue.get("category")]}`}
+							aria-label={`Category: ${Categories[this.props.issue.get("category")].name}`}
+							title={`Category: ${Categories[this.props.issue.get("category")].name}`}
 						/>
-						{this.state.issue.name}
+						{this.props.issue.get("name")}
 					</h1>
 
 					<div className="issue-actions">
-						<button
-							className={`btn fa fa-${subscribeButtonIcon} fa-2x`}
-							disabled={!this.state.canToggleSubscription}
-							aria-label={subscribeButtonLabel}
-							title={subscribeButtonLabel}
-							onClick={this.handleSubscribeButtonClick}
-						>
-						</button>
+						<IssueSubscriptionToggle
+							issue={this.props.issue}
+						/>
 						{
-							this.state.issue.createdBy.id === UserUtils.currentUser.id ?
+							this.props.issue.get("createdBy").get("id") === UserUtils.currentUser.id ?
 								(
 									<Link
 										className="edit-issue-link fa fa-edit fa-2x"
-										to={`/issues/edit/${this.state.issue.id}`}
+										to={`/issues/edit/${this.props.issue.get("id")}`}
 										aria-label="Edit Issue"
 										title="Edit Issue"
 									/>
@@ -174,20 +194,24 @@ class IssueDetails extends React.Component {
 
 				<p
 					className="description"
-					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.state.issue.description)}}
+					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.props.issue.get("description"))}}
 				/>
 
 				{this.renderRepresentativesContactInfo()}
 
 				<ImageUpload
-					className={this.state.issue.userIsSubscribed ? "" : "hidden"}
-					issue={this.state.issue}
+					className={this.props.issue.get("userIsSubscribed") ? "" : "hidden"}
+					issue={this.props.issue}
+					userIssueImages={this.props.userIssueImages}
+					onDeleteImage={this.handleDeleteImage}
+					onUploadImage={this.handleUploadImage}
 				/>
 			</div>
 		);
 	}
 
 	renderLoadError() {
+		console.error("Error loading issue: ", this.props.issueLoadError);
 		return (
 			<div className={`${ISSUE_DETAILS_CONTAINER_CLASS} loading-error`}>
 				<span className="error-icon fa fa-exclamation-circle" />
@@ -197,12 +221,59 @@ class IssueDetails extends React.Component {
 	}
 
 	render() {
-		if (this.state.issueLoadError) {
+		if (this.props.issueLoadError) {
 			return this.renderLoadError();
 		}
 
-		return this.state.issue === null ? this.renderIssueLoading() : this.renderIssue();
+		return this.props.issue ? this.renderIssue() : this.renderIssueLoading();
 	}
 }
 
-export default withRouter(IssueDetails);
+export default connect(
+	(state, ownProps) => {
+		const issues = state.get("issues");
+		const issueImages = state.get("issueImages");
+		const congress = state.get("congress");
+		const { issueID } = ownProps;
+
+		const props = {
+			issueID
+		};
+
+		if (issues.get("issueLoadError")) {
+			props.issueLoadError = issues.get("issueLoadError");
+		}
+		else {
+			props.issue = issues && issues.get("items") &&
+				issues.get("items").find(issue => issue.get("id") === issueID);
+		}
+
+		if (
+			issueImages && issueImages.has("items")
+		) {
+			props.userIssueImages = issueImages.get("items").filter(
+				image => image.get("userID") === UserUtils.currentUser.id && image.get("issueID") === issueID
+			).toList();
+		}
+
+		if (congress.get("representativesLoadError")) {
+			props.representativesLoadError = congress.get("representativesLoadError");
+		}
+		else {
+			if (
+				!isEmpty(UserUtils.currentUser.location) &&
+					congress && congress.has("items")
+			) {
+				props.representatives = congress.get("items").filter(
+					member => member.get("state") === UserUtils.currentUser.location.state &&
+						(
+							member.get("chamber") === "senate" ||
+								Number(member.get("district")) === UserUtils.currentUser.location.district
+						)
+				).toList();
+			}
+		}
+
+		return props;
+	}
+)(withRouter(IssueDetails));

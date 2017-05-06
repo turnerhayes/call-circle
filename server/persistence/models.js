@@ -3,18 +3,26 @@
 const rfr             = require("rfr");
 const UserModel       = rfr("server/persistence/models/user");
 const IssueModel      = rfr("server/persistence/models/issue");
+const UserIssuesModel = rfr("server/persistence/models/user-issues");
 const TagModel        = rfr("server/persistence/models/tag");
 const IssueImageModel = rfr("server/persistence/models/issue-image");
 
 IssueModel.belongsTo(UserModel, { "as": "createdBy" });
 
 UserModel.belongsToMany(IssueModel, {
-	"through": "user_issues",
+	"through": UserIssuesModel,
 	"foreignKey": "user_id"
 });
 
+UserIssuesModel.belongsTo(
+	IssueModel,
+	{
+		"foreignKey": "issue_id"
+	}
+);
+
 IssueModel.belongsToMany(UserModel, {
-	"through": "user_issues",
+	"through": UserIssuesModel,
 	"foreignKey": "issue_id"
 });
 
@@ -39,6 +47,7 @@ IssueImageModel.belongsTo(UserModel, { "as": "user" });
 exports = module.exports = {
 	"User": UserModel,
 	"Issue": IssueModel,
+	"UserIssues": UserIssuesModel,
 	"Tag": TagModel,
 	"IssueImage": IssueImageModel
 };

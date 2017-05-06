@@ -1,25 +1,28 @@
-import React      from "react";
-import { Link }   from "react-router";
-import IssuesList from "project/scripts/components/issues/List";
-import IssueUtils from "project/scripts/utils/issue";
-import UserUtils  from "project/scripts/utils/user";
-import                 "project/styles/issues/issue-list.less";
+import React              from "react";
+import PropTypes          from "prop-types";
+import ImmutablePropTypes from "react-immutable-proptypes";
+import { Link }           from "react-router";
+import { connect }        from "react-redux";
+import IssuesList         from "project/scripts/components/issues/List";
+import {
+	fetchIssuesForUser
+}                         from "project/scripts/redux/actions";
+import                         "project/styles/issues/issue-list.less";
 
 class Issues extends React.Component {
 	static propTypes = {
-		"user": React.PropTypes.object.isRequired
+		"user": PropTypes.object.isRequired,
+		"dispatch": PropTypes.func.isRequired,
+		"issues": ImmutablePropTypes.listOf(
+			ImmutablePropTypes.map
+		),
+		"issueLoadError": PropTypes.object
 	}
 
-	state = {
-		"issues": null,
-		"issueLoadError": null
-	}
+	componentDidMount() {
+		const { dispatch, user } = this.props;
 
-	componentWillMount() {
-		IssueUtils.findByUserID((this.props.user || UserUtils.currentUser).id).then(
-			issues => this.setState({issues}),
-			ex => this.setState({"issueLoadError": ex})
-		);
+		dispatch(fetchIssuesForUser({ "userID": user.id }));
 	}
 
 	renderLoading() {
@@ -59,18 +62,32 @@ class Issues extends React.Component {
 					>
 					</Link>
 				</div>
-				<IssuesList issues={this.state.issues} />
+				<IssuesList issues={this.props.issues} />
 			</section>
 		);
 	}
 
 	render() {
-		if (this.state.issueLoadError) {
+		if (this.props.issueLoadError) {
 			return this.renderLoadError();
 		}
 
-		return this.state.issues ? this.renderIssues() : this.renderLoading();
+		return this.props.issues ? this.renderIssues() : this.renderLoading();
 	}
 }
 
-export default Issues;
+export default connect(
+	state => {
+		const issues = state.get("issues");
+
+		if (issues.get("itemLoadError")) {
+			return {
+				"itemLoadError": issues.get("itemLoadError")
+			};
+		}
+
+		return {
+			"issues": issues.get("items")
+		};
+	}
+)(Issues);

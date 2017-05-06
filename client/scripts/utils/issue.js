@@ -1,7 +1,11 @@
-import $        from "jquery";
-import { omit } from "lodash";
-import Promise  from "bluebird";
-import assert   from "assert";
+import $          from "jquery";
+import { omit }   from "lodash";
+import {
+	List,
+	fromJS
+} from "immutable";
+import Promise    from "bluebird";
+import assert     from "assert";
 
 function processResult(result) {
 	result.created_at = result.created_at ? new Date(result.created_at) : null;
@@ -9,34 +13,38 @@ function processResult(result) {
 	result.deleted_at = result.deleted_at ? new Date(result.deleted_at) : null;
 	result.deadline = result.deadline ? new Date(result.deadline) : null;
 
-	return result;
+	return fromJS(result);
+}
+
+function getErrorMessageFromXHR(jqXHR) {
+	return jqXHR.responseJSON &&
+	jqXHR.responseJSON.error &&
+	jqXHR.responseJSON.error.message ?
+		jqXHR.responseJSON.error.message :
+		jqXHR.responseText;
 }
 
 export default class IssueUtils {
-	static findByID(issueID, options) {
-		options = options || {};
-
+	static findByID({ issueID, includeUsers = false }) {
 		return Promise.resolve(
 			$.ajax({
 				"url": `/api/issues/${issueID}`,
 				"dataType": "json",
 				"type": "get",
 				"data": {
-					"includeUsers": options.includeUsers
+					"includeUsers": includeUsers
 				}
 			}).then(
 				processResult
 			).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
 	}
 
-	static findByUserID(userID, options) {
-		options = options || {};
-
+	static findByUserID({ userID, includeUsers = false }) {
 		return Promise.resolve(
 			$.ajax({
 				"url": "/api/issues",
@@ -44,64 +52,49 @@ export default class IssueUtils {
 				"type": "get",
 				"data": {
 					"userid": userID,
-					"includeUsers": options.includeUsers
+					"includeUsers": includeUsers
 				}
 			}).then(
-				results => results.map(processResult)
+				results => List(results.map(processResult))
 			).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
 	}
 
-	static getUserIssues(userID) {
+	static subscribeToIssue({ issue }) {
 		return Promise.resolve(
 			$.ajax({
-				"url": "/api/issues",
-				"type": "get",
-				"dataType": "json",
-				"data": {
-					"userid": userID
-				}
+				"url": `/api/issues/${issue.get("id")}/subscribe`,
+				"type": "post"
 			}).then(
-				results => results.map(processResult)
+				() => issue
 			).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
 	}
 
-	static subscribeToIssue(issue) {
+	static unsubscribeFromIssue({ issue }) {
 		return Promise.resolve(
 			$.ajax({
-				"url": `/api/issues/${issue.id}/subscribe`,
+				"url": `/api/issues/${issue.get("id")}/unsubscribe`,
 				"type": "post"
-			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+			}).then(
+				() => issue
+			).catch(
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
 	}
 
-	static unsubscribeFromIssue(issue) {
-		return Promise.resolve(
-			$.ajax({
-				"url": `/api/issues/${issue.id}/unsubscribe`,
-				"type": "post"
-			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
-				}
-			)
-		);
-	}
-
-	static createIssue(issue) {
+	static createIssue({ issue }) {
 		return Promise.resolve(
 			$.ajax({
 				"url": "/api/issues",
@@ -112,14 +105,14 @@ export default class IssueUtils {
 			}).then(
 				processResult
 			).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
 	}
 
-	static editIssue(issue) {
+	static editIssue({ issue }) {
 		return Promise.resolve(
 			$.ajax({
 				"url": `/api/issues/${issue.id}`,
@@ -130,33 +123,33 @@ export default class IssueUtils {
 			}).then(
 				processResult
 			).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
 	}
 
-	static saveIssue(issue) {
+	static saveIssue({ issue }) {
 		if (issue.id) {
-			return IssueUtils.editIssue(issue);
+			return IssueUtils.editIssue({issue});
 		}
 
-		return IssueUtils.createIssue(issue);
+		return IssueUtils.createIssue({issue});
 	}
 
-	static searchIssues(options) {
+	static searchIssues({ searchOptions }) {
 		return Promise.resolve(
 			$.ajax({
 				"url": "/api/issues/search",
 				"type": "get",
 				"dataType": "json",
-				"data": options
+				"data": searchOptions
 			}).then(
 				results => results.map(processResult)
 			).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
@@ -185,8 +178,8 @@ export default class IssueUtils {
 				"processData": false,
 				"data": data
 			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
 		);
