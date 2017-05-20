@@ -1,7 +1,8 @@
-import $          from "jquery";
-import Promise    from "bluebird";
-import { fromJS } from "immutable";
-import APIKeys    from "project/scripts/api-keys.json";
+import $                    from "jquery";
+import Promise              from "bluebird";
+import { fromJS }           from "immutable";
+import CongressMemberRecord from "project/scripts/records/congress-member";
+import APIKeys              from "project/scripts/api-keys.json";
 
 // TODO: factor out of individual utils
 function getErrorMessageFromXHR(jqXHR) {
@@ -40,7 +41,6 @@ export default class CongressDataUtils {
 					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			).then(
-				members => fromJS(members)
 			)
 		);
 	}
@@ -56,7 +56,7 @@ export default class CongressDataUtils {
 					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			).then(
-				members => fromJS(members)
+				members => fromJS(members).map(member => new CongressMemberRecord(member))
 			)
 		);
 	}
@@ -84,7 +84,7 @@ export default class CongressDataUtils {
 					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			).then(
-				members => fromJS(members)
+				members => fromJS(members).map(member => new CongressMemberRecord(member))
 			)
 		);
 	}

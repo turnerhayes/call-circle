@@ -1,7 +1,8 @@
-import $          from "jquery";
-import Promise    from "bluebird";
-import assert     from "assert";
-import { fromJS } from "immutable";
+import $                from "jquery";
+import Promise          from "bluebird";
+import assert           from "assert";
+import { fromJS }       from "immutable";
+import IssueImageRecord from "project/scripts/records/issue-image";
 
 // TODO: factor out of individual utils
 function getErrorMessageFromXHR(jqXHR) {
@@ -23,7 +24,7 @@ export default class IssueImageUtils {
 				"url": `/api/issues/${issueID}/images${query}`,
 				"type": "get"
 			}).then(
-				images => fromJS(images)
+				images => fromJS(images).map(image => new IssueImageRecord(image))
 			).catch(
 				jqXHR => {
 					throw new Error(getErrorMessageFromXHR(jqXHR));
@@ -51,7 +52,7 @@ export default class IssueImageUtils {
 				"contentType": false,
 				"processData": false,
 				"data": data
-			}).then(image => fromJS(image)).catch(
+			}).then(image => new IssueImageRecord(fromJS(image))).catch(
 				jqXHR => {
 					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
@@ -64,7 +65,7 @@ export default class IssueImageUtils {
 
 		return Promise.resolve(
 			$.ajax({
-				"url": `/api/issues/${image.get("issueID")}/images/${image.get("id")}`,
+				"url": `/api/issues/${image.issueID}/images/${image.id}`,
 				"type": "delete"
 			}).then(
 				() => image

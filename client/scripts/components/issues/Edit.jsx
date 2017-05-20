@@ -1,18 +1,19 @@
-import React              from "react";
-import PropTypes          from "prop-types";
-import ImmutablePropTypes from "react-immutable-proptypes";
-import { connect }        from "react-redux";
+import React       from "react";
+import PropTypes   from "prop-types";
+import { connect } from "react-redux";
 import {
 	fetchIssueByID
-}                         from "project/scripts/redux/actions";
-import IssueForm          from "project/scripts/components/issues/IssueForm";
+}                  from "project/scripts/redux/actions";
+import IssueForm   from "project/scripts/components/issues/IssueForm";
+import IssueRecord from "project/scripts/records/issue";
+import                  "project/styles/issues/edit.less";
 
 const CONTAINER_CLASS = "edit-issue-container";
 
 class EditIssue extends React.Component {
 	static propTypes = {
 		"issueID": PropTypes.number.isRequired,
-		"issue": ImmutablePropTypes.map,
+		"issue": PropTypes.instanceOf(IssueRecord),
 		"issueLoadError": PropTypes.object,
 		"dispatch": PropTypes.func.isRequired
 	}
@@ -29,6 +30,7 @@ class EditIssue extends React.Component {
 				<h2>Edit an Issue</h2>
 				<IssueForm
 					issue={this.props.issue}
+					formType="edit"
 				/>
 			</div>
 		);
@@ -76,7 +78,7 @@ export default connect(
 		}
 		else {
 			props.issue = issues && issues.get("items") &&
-				issues.get("items").find(issue => issue.get("id") === issueID);
+				issues.get("items").find(issue => issue.id === issueID);
 		}
 
 		return props;

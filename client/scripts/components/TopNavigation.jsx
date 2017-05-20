@@ -1,24 +1,27 @@
 import { uniqueId }         from "lodash";
 import React                from "react";
+import { connect }          from "react-redux";
+import PropTypes            from "prop-types";
 import { Link, withRouter } from "react-router";
 import Breadcrumbs          from "react-breadcrumbs";
-import UserUtils            from "project/scripts/utils/user";
+import UserRecord           from "project/scripts/records/user";
 import                           "project/styles/breadcrumbs.less";
 
 class TopNavigation extends React.Component {
 	static propTypes = {
-		"routes": React.PropTypes.array,
-		"params": React.PropTypes.object
+		"routes": PropTypes.array,
+		"params": PropTypes.object,
+		"currentUser": PropTypes.instanceOf(UserRecord)
 	}
 
 	render() {
 		let userLinkElements;
 
-		if (UserUtils.currentUser) {
+		if (this.props.currentUser) {
 			userLinkElements = [
 				<span key={uniqueId()}>Logged in as </span>,
-				<Link to="profile" key={uniqueId()}>
-					{UserUtils.currentUser.displayName}
+				<Link to="/profile" key={uniqueId()}>
+					{this.props.currentUser.displayName}
 				</Link>
 			];
 		}
@@ -55,4 +58,12 @@ class TopNavigation extends React.Component {
 	}
 }
 
-export default withRouter(TopNavigation);
+export default connect(
+	state => {
+		const currentUser = state.get("users").currentUser;
+
+		return {
+			currentUser
+		};
+	}
+)(withRouter(TopNavigation));

@@ -1,3 +1,6 @@
+import {
+	push
+}                        from "react-router-redux";
 import UserUtils         from "project/scripts/utils/user";
 import IssueUtils        from "project/scripts/utils/issue";
 import IssueImageUtils   from "project/scripts/utils/issue-image";
@@ -60,31 +63,12 @@ export function unsubscribeFromIssue({ issue }) {
 	};
 }
 
-export function toggleIssueSubscription({ issue }) {
-	if (issue.get("userIsSubscribed")) {
-		return unsubscribeFromIssue({ issue });
-	}
-
-	return subscribeToIssue({ issue });
-}
-
 export const GET_SUBSCRIPTIONS_FOR_USER = "USER_GET_SUBSCRIPTIONS";
 
 export function getSubscriptionsForUser({ userID }) {
 	return {
 		"type": GET_SUBSCRIPTIONS_FOR_USER,
 		"payload": UserUtils.getSubscriptionsForUser({ userID })
-	};
-}
-
-export const SHOW_ISSUE = "ISSUES_ISSUE_SHOW";
-
-export function showIssue({ issueID }) {
-	return {
-		"type": SHOW_ISSUE,
-		"payload": {
-			issueID
-		}
 	};
 }
 
@@ -104,6 +88,63 @@ export function fetchIssueByID({ issueID }) {
 	};
 }
 
+export const CREATE_ISSUE = "ISSUES_CREATE";
+
+export function createIssue(issueData, { redirectOnSuccess }) {
+	return dispatch => {
+		let promise = IssueUtils.createIssue({"issue": issueData});
+
+		if (redirectOnSuccess) {
+			promise = promise.then(
+				issue => dispatch(push(`/issues/${issue.id}`))
+			);
+		}
+
+		return {
+			"type": CREATE_ISSUE,
+			"payload": promise
+		};
+	};
+}
+
+export const EDIT_ISSUE = "ISSUES_EDIT";
+
+export function editIssue(issueData, { redirectOnSuccess }) {
+	return dispatch => {
+		let promise = IssueUtils.editIssue({"issue": issueData});
+
+		if (redirectOnSuccess) {
+			promise = promise.then(
+				issue => {
+					dispatch(push(`/issues/${issue.id}`));
+				}
+			);
+		}
+
+		return {
+			"type": EDIT_ISSUE,
+			"payload": promise
+		};
+	};
+}
+
+export const CHANGE_ISSUE_SEARCH_PARAMETERS = "ISSUES_SEARCH_CHANGE_PARAMETERS";
+
+export function changeIssueSearchParamters(parameters) {
+	return {
+		"type": CHANGE_ISSUE_SEARCH_PARAMETERS,
+		"payload": parameters
+	};
+}
+
+export const SEARCH_ISSUES = "ISSUES_SEARCH";
+
+export function searchIssues({ searchOptions }) {
+	return {
+		"type": SEARCH_ISSUES,
+		"payload": IssueUtils.searchIssues({ searchOptions })
+	};
+}
 
 export const FETCH_ISSUE_IMAGES = "ISSUE_IMAGES_FETCH";
 
@@ -143,5 +184,35 @@ export function getCongressionalRepresentatives({ state, district }) {
 	return {
 		"type": GET_CONGRESSIONAL_REPRESENTATIVES,
 		"payload": CongressDataUtils.getMemberInfo({ state, district })
+	};
+}
+
+export const GET_CONGRESSIONAL_DISTRICTS = "CONGRESS_GET_DISTRICTS";
+
+export function getAllUSDistricts() {
+	return {
+		"type": GET_CONGRESSIONAL_DISTRICTS,
+		"payload": CongressDataUtils.getDistricts()
+	};
+}
+
+export const GET_USER = "USERS_GET";
+
+export function getUser({ userID }) {
+	return {
+		"type": GET_USER,
+		"payload": UserUtils.getUser({ userID })
+	};
+}
+
+export const UPDATE_USER_PROFILE = "USERS_UPDATE_USER_PROFILE";
+
+export function updateUserProfile({ userID, location }) {
+	return {
+		"type": UPDATE_USER_PROFILE,
+		"payload": UserUtils.updateProfile({
+			userID,
+			location
+		})
 	};
 }

@@ -147,7 +147,7 @@ app.get(
 	cors(SITE_RESTRICTED_CORS_OPTIONS),
 	(req, res, next) => {
 		// If what we're serving is supposed to be HTML, serve the base page.
-		if (req.accepts(["html", "json"]) === "html") {
+		if (!/^\/(auth|api|static)\//.test(req.path) && req.accepts(["html", "json"]) === "html") {
 			res.render("index", {
 				"req": req
 			});

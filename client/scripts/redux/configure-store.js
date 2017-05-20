@@ -4,10 +4,12 @@ import thunkMiddleware                  from "redux-thunk";
 import promiseMiddleware                from "redux-promise";
 import { persistState }                 from "redux-devtools";
 import { composeWithDevTools }          from "redux-devtools-extension";
-import { Map }                          from "immutable";
-import invariant                        from "redux-immutable-state-invariant";
-import rootReducer                      from "project/scripts/redux/reducers";
-import Config                           from "project/shared-lib/config";
+import { Map }              from "immutable";
+import invariant            from "redux-immutable-state-invariant";
+import { browserHistory }   from "react-router";
+import { routerMiddleware } from "react-router-redux";
+import rootReducer          from "project/scripts/redux/reducers";
+import Config               from "project/shared-lib/config";
 
 
 function getDebugSessionKey() {
@@ -19,7 +21,8 @@ const loggerMiddleware = createLogger();
 
 const middlewares = [
 	thunkMiddleware,
-	promiseMiddleware
+	promiseMiddleware,
+	routerMiddleware(browserHistory)
 ];
 
 if (Config.app.isDevelopment) {

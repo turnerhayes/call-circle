@@ -1,4 +1,5 @@
 import { isEmpty }             from "lodash";
+import { Set }                 from "immutable";
 import React                   from "react";
 import PropTypes               from "prop-types";
 import ImmutablePropTypes      from "react-immutable-proptypes";
@@ -8,8 +9,11 @@ import { markdown }            from "markdown";
 import ImageUpload             from "project/scripts/components/issues/ImageUpload";
 import IssueSubscriptionToggle from "project/scripts/components/issues/SubscriptionToggle";
 import ContactInfo             from "project/scripts/components/congress/ContactInfo";
-import IssueUtils              from "project/scripts/utils/issue";
-import UserUtils               from "project/scripts/utils/user";
+import IssueRecord             from "project/scripts/records/issue";
+import UserRecord              from "project/scripts/records/user";
+import CongressMemberRecord    from "project/scripts/records/congress-member";
+import IssueImageRecord        from "project/scripts/records/issue-image";
+import CATEGORY_ICON_MAP       from "project/scripts/utils/category-icon-map";
 import {
 	fetchIssueByID,
 	fetchIssueImages,
@@ -25,15 +29,17 @@ const ISSUE_DETAILS_CONTAINER_CLASS = "c_issue-details";
 class IssueDetails extends React.Component {
 	static propTypes = {
 		"issueID": PropTypes.number.isRequired,
-		"issue": PropTypes.object,
+		"issue": PropTypes.instanceOf(IssueRecord),
+		"userIsSubscribed": PropTypes.bool,
 		"userIssueImages": ImmutablePropTypes.listOf(
-			ImmutablePropTypes.map
+			PropTypes.instanceOf(IssueImageRecord)
 		),
 		"issueLoadError": PropTypes.object,
 		"representatives": ImmutablePropTypes.listOf(
-			ImmutablePropTypes.map
+			PropTypes.instanceOf(CongressMemberRecord)
 		),
 		"representativesLoadError": PropTypes.object,
+		"currentUser": PropTypes.instanceOf(UserRecord),
 		"dispatch": PropTypes.func.isRequired
 	}
 
@@ -50,6 +56,10 @@ class IssueDetails extends React.Component {
 	}
 
 	fetchData = () => {
+		if (this.props.issueLoadError) {
+			return;
+		}
+		
 		if (this.props.issue) {
 			if (!this.props.representatives && !this.props.representativesLoadError) {
 				this.getRepresentatives();
@@ -64,27 +74,6 @@ class IssueDetails extends React.Component {
 		}
 	}
 
-	handleSubscribeButtonClick = () => {
-		// const isSubscribing = !this.props.issue.get("userIsSubscribed");
-		// this.setState({"canToggleSubscription": false});
-
-		// (
-		// 	isSubscribing ?
-		// 		IssueUtils.subscribeToIssue({"issue": this.props.issue}) :
-		// 		IssueUtils.unsubscribeFromIssue({"issue": this.props.issue})
-		// ).then(
-		// 	() => {
-		// 		const issue = this.props.issue;
-
-		// 		issue.userIsSubscribed = isSubscribing;
-
-		// 		this.setState({ issue });
-		// 	}
-		// ).finally(
-		// 	() => this.setState({ "canToggleSubscription": true })
-		// );
-	}
-
 	handleDeleteImage = image => {
 		this.props.dispatch(deleteIssueImage({ image }));
 	}
@@ -95,8 +84,8 @@ class IssueDetails extends React.Component {
 
 	getRepresentatives = () => {
 		this.props.dispatch(getCongressionalRepresentatives({
-			"state": UserUtils.currentUser.location.state,
-			"district": UserUtils.currentUser.location.district
+			"state": this.props.currentUser.location.get("state"),
+			"district": this.props.currentUser.location.get("district")
 		}));
 	}
 
@@ -112,11 +101,11 @@ class IssueDetails extends React.Component {
 	}
 
 	renderRepresentativesContactInfo = () => {
-		if (!UserUtils.currentUser.location) {
+		if (isEmpty(this.props.currentUser.location)) {
 			return (
 				<div>
 					You don&#39;t have your location set. Update your <Link
-						to={`/profile`}
+						to="/profile"
 					>profile</Link> so that you can see contact information for your
 					members of Congress.
 				</div>
@@ -140,14 +129,14 @@ class IssueDetails extends React.Component {
 					this.props.representatives.map(
 						rep => (
 							<li
-								key={rep.get("id")}
+								key={rep.id}
 							>
 								<ContactInfo
 									memberInfo={rep}
 								/>
 							</li>
 						)
-					)
+					).toJS()
 				}
 				</ul>
 			);
@@ -166,11 +155,11 @@ class IssueDetails extends React.Component {
 				<header className="issue-header">
 					<h1 className="issue-title">
 						<span
-							className={`category fa fa-${IssueUtils.CATEGORY_ICON_MAP[this.props.issue.get("category")]}`}
-							aria-label={`Category: ${Categories[this.props.issue.get("category")].name}`}
-							title={`Category: ${Categories[this.props.issue.get("category")].name}`}
+							className={`category fa fa-${CATEGORY_ICON_MAP[this.props.issue.category]}`}
+							aria-label={`Category: ${Categories[this.props.issue.category].name}`}
+							title={`Category: ${Categories[this.props.issue.category].name}`}
 						/>
-						{this.props.issue.get("name")}
+						{this.props.issue.name}
 					</h1>
 
 					<div className="issue-actions">
@@ -178,11 +167,11 @@ class IssueDetails extends React.Component {
 							issue={this.props.issue}
 						/>
 						{
-							this.props.issue.get("createdBy").get("id") === UserUtils.currentUser.id ?
+							this.props.issue.createdByID === this.props.currentUser.id ?
 								(
 									<Link
 										className="edit-issue-link fa fa-edit fa-2x"
-										to={`/issues/edit/${this.props.issue.get("id")}`}
+										to={`/issues/edit/${this.props.issue.id}`}
 										aria-label="Edit Issue"
 										title="Edit Issue"
 									/>
@@ -194,18 +183,24 @@ class IssueDetails extends React.Component {
 
 				<p
 					className="description"
-					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.props.issue.get("description"))}}
+					dangerouslySetInnerHTML={{"__html": markdown.toHTML(this.props.issue.description)}}
 				/>
 
-				{this.renderRepresentativesContactInfo()}
+				{
+					this.props.userIsSubscribed && this.renderRepresentativesContactInfo()
+				}
+				{
+					this.props.userIsSubscribed && (
+							<ImageUpload
+								issue={this.props.issue}
+								userIssueImages={this.props.userIssueImages}
+								onDeleteImage={this.handleDeleteImage}
+								onUploadImage={this.handleUploadImage}
+							/>
+						)
+				}
+				{}
 
-				<ImageUpload
-					className={this.props.issue.get("userIsSubscribed") ? "" : "hidden"}
-					issue={this.props.issue}
-					userIssueImages={this.props.userIssueImages}
-					onDeleteImage={this.handleDeleteImage}
-					onUploadImage={this.handleUploadImage}
-				/>
 			</div>
 		);
 	}
@@ -234,10 +229,15 @@ export default connect(
 		const issues = state.get("issues");
 		const issueImages = state.get("issueImages");
 		const congress = state.get("congress");
+		const users = state.get("users");
+		const subscriptions = users.get("subscriptions", Set());
 		const { issueID } = ownProps;
+		const currentUser = users.currentUser;
 
 		const props = {
-			issueID
+			issueID,
+			currentUser,
+			"userIsSubscribed": subscriptions.includes(issueID)
 		};
 
 		if (issues.get("issueLoadError")) {
@@ -245,14 +245,14 @@ export default connect(
 		}
 		else {
 			props.issue = issues && issues.get("items") &&
-				issues.get("items").find(issue => issue.get("id") === issueID);
+				issues.get("items").find(issue => issue.id === issueID);
 		}
 
 		if (
 			issueImages && issueImages.has("items")
 		) {
 			props.userIssueImages = issueImages.get("items").filter(
-				image => image.get("userID") === UserUtils.currentUser.id && image.get("issueID") === issueID
+				image => image.get("userID") === currentUser.id && image.get("issueID") === issueID
 			).toList();
 		}
 
@@ -261,14 +261,14 @@ export default connect(
 		}
 		else {
 			if (
-				!isEmpty(UserUtils.currentUser.location) &&
+				!isEmpty(currentUser.location) &&
 					congress && congress.has("items")
 			) {
 				props.representatives = congress.get("items").filter(
-					member => member.get("state") === UserUtils.currentUser.location.state &&
+					member => member.state === currentUser.getIn(["location", "state"]) &&
 						(
-							member.get("chamber") === "senate" ||
-								Number(member.get("district")) === UserUtils.currentUser.location.district
+							member.chamber === "senate" ||
+								Number(member.district) === currentUser.getIn(["location", "district"])
 						)
 				).toList();
 			}

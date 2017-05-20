@@ -1,6 +1,10 @@
 import $          from "jquery";
 import Promise    from "bluebird";
-import { fromJS } from "immutable";
+import {
+	fromJS,
+	Set
+}                 from "immutable";
+import UserRecord from "project/scripts/records/user";
 
 
 // TODO: factor out of individual utils
@@ -12,15 +16,21 @@ function getErrorMessageFromXHR(jqXHR) {
 		jqXHR.responseText;
 }
 
-let _currentUser;
-
 class UserUtils {
-	static get currentUser() {
-		if (!_currentUser) {
-			_currentUser = $(document.body).data("user");
-		}
-
-		return _currentUser;
+	static getUser({ userID }) {
+		return Promise.resolve(
+			$.ajax({
+				"url": `/api/users/${userID}`,
+				"type": "GET",
+				"dataType": "json"
+			}).then(
+				user => new UserRecord(fromJS(user))
+			).catch(
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
+				}
+			)
+		);
 	}
 
 	static updateProfile({ userID, location }) {
@@ -39,19 +49,13 @@ class UserUtils {
 				"type": "PATCH",
 				"dataType": "json",
 				data
-			}).catch(
-				(jqXHR, textStatus) => {
-					throw new Error(textStatus);
+			}).then(
+				updatedUser => new UserRecord(fromJS(updatedUser))
+			).catch(
+				jqXHR => {
+					throw new Error(getErrorMessageFromXHR(jqXHR));
 				}
 			)
-		).then(
-			user => {
-				if (UserUtils.currentUser && UserUtils.currentUser.id === userID) {
-					_currentUser = user;
-				}
-
-				return fromJS(user);
-			}
 		);
 	}
 
@@ -62,7 +66,7 @@ class UserUtils {
 				"type": "GET",
 				"dataType": "json"
 			}).then(
-				subscriptions => fromJS(subscriptions)
+				subscriptions => Set.of(...subscriptions)
 			).catch(jqXHR => getErrorMessageFromXHR(jqXHR))
 		);
 	}

@@ -1,35 +1,45 @@
-import React                from "react";
-import { connect }          from "react-redux";
-import PropTypes            from "prop-types";
-import ImmutablePropTypes   from "react-immutable-proptypes";
+import React                 from "react";
+import { connect }           from "react-redux";
+import PropTypes             from "prop-types";
+import UserRecord            from "project/scripts/records/user";
+import IssueRecord           from "project/scripts/records/issue";
 import {
-	toggleIssueSubscription
-}                           from "project/scripts/redux/actions";
+	getSubscriptionsForUser,
+	unsubscribeFromIssue,
+	subscribeToIssue
+}                            from "project/scripts/redux/actions";
 
 class IssueSubscriptionToggle extends React.Component {
 	static propTypes = {
-		"issue": ImmutablePropTypes.map.isRequired,
-		"isSubscribing": PropTypes.bool,
+		"issue": PropTypes.instanceOf(IssueRecord).isRequired,
+		"isChangingSubscription": PropTypes.bool,
+		"isSubscribed": PropTypes.bool,
+		"currentUser": PropTypes.instanceOf(UserRecord).isRequired,
 		"dispatch": PropTypes.func.isRequired
 	}
 
+	componentWillMount() {
+		this.props.dispatch(getSubscriptionsForUser({ "userID": this.props.currentUser.id }));
+	}
+
 	handleSubscribeButtonClick = () => {
-		this.props.dispatch(toggleIssueSubscription({ "issue": this.props.issue }));
+		const func = this.props.isSubscribed ? unsubscribeFromIssue : subscribeToIssue;
+		this.props.dispatch(func({ "issue": this.props.issue }));
 	}
 
 	render() {
-		const subscribeButtonLabel = this.props.issue.get("userIsSubscribed") ?
+		const subscribeButtonLabel = this.props.isSubscribed ?
 			"Unsubscribe from this issue" :
 			"Subscribe to this issue";
 
-		const subscribeButtonIcon = this.props.issue.get("userIsSubscribed") ?
+		const subscribeButtonIcon = this.props.isSubscribed ?
 			"minus" :
 			"plus";
 
 		return (
 			<button
 				className={`btn fa fa-${subscribeButtonIcon} fa-2x`}
-				disabled={this.props.isSubscribing}
+				disabled={this.props.isChangingSubscription}
 				aria-label={subscribeButtonLabel}
 				title={subscribeButtonLabel}
 				onClick={this.handleSubscribeButtonClick}
@@ -40,11 +50,17 @@ class IssueSubscriptionToggle extends React.Component {
 }
 
 export default connect(
-	state => {
-		const issues = state.get("issues");
-		const props = {};
+	(state, ownProps) => {
+		const { issue } = ownProps;
+		const users = state.get("users");
+		const currentUser = users.currentUser;
+		const props = {
+			currentUser,
+			"isChangingSubscription": users.isChangingSubscription,
+			"isSubscribed": users.subscriptions &&
+				users.subscriptions.includes(issue.id)
+		};
 
-		props.isSubscribing = issues.get("isSubscribing");
 
 		return props;
 	}

@@ -1,5 +1,6 @@
 "use strict";
 
+const _       = require("lodash");
 const path    = require("path");
 const Promise = require("bluebird");
 const fs      = Promise.promisifyAll(require("fs"));
@@ -103,15 +104,24 @@ exports = module.exports = class CongressDataStore {
 
 	static getDistricts(options) {
 		return CongressDataStore.getHouseMembers(options).then(
-			members => members.reduce(
-				(districts, member) => {
-					if (!districts[member.state]) {
-						districts[member.state] = [];
-					}
+			members => _.reduce(
+				_.reduce(
+					members,
+					(districts, member) => {
+						if (!districts[member.state]) {
+							districts[member.state] = [];
+						}
 
-					districts[member.state].push(Number(member.district));
+						districts[member.state].push(Number(member.district));
 
-					return districts;
+						return districts;
+					},
+					{}
+				),
+				(sorted, districts, state) => {
+					sorted[state] = districts.sort((a, b) => a - b);
+
+					return sorted;
 				},
 				{}
 			)

@@ -1,12 +1,22 @@
-import { isString, map, uniqueId } from "lodash";
-import React                       from "react";
-import { SingleDatePicker }        from "react-dates";
-import { withRouter }              from "react-router";
-import moment                      from "moment";
-import TextEditor                  from "project/scripts/components/TextEditor";
-import IssueUtils                  from "project/scripts/utils/issue";
-import Categories                  from "project/shared-lib/categories";
-import                                  "react-dates/lib/css/_datepicker.css";
+import {
+	isString,
+	map,
+	uniqueId
+}                           from "lodash";
+import React                from "react";
+import PropTypes            from "prop-types";
+import { SingleDatePicker } from "react-dates";
+import { withRouter }       from "react-router";
+import { connect }          from "react-redux";
+import moment               from "moment";
+import {
+	createIssue,
+	editIssue
+}                           from "project/scripts/redux/actions";
+import TextEditor           from "project/scripts/components/TextEditor";
+import IssueRecord          from "project/scripts/records/issue";
+import Categories           from "project/shared-lib/categories";
+import                           "react-dates/lib/css/_datepicker.css";
 
 const PROP_NAMES = ["name", "category", "deadline", "description"];
 
@@ -21,7 +31,7 @@ function getState(issue) {
 	if (issue) {
 		return PROP_NAMES.reduce(
 			(state, propName) => {
-				state[propName] = issue[propName];
+				state[propName] = issue.get(propName);
 
 				return state;
 			},
@@ -39,17 +49,13 @@ function getState(issue) {
 }
 
 class IssueForm extends React.Component {
-	formType = this.props.issue ? "add" : "edit"
-
-	componentID = uniqueId(`${this.formType}-issue-`)
+	componentID = uniqueId(`${this.props.formType}-issue-`)
 
 	static propTypes = {
-		"issue": React.PropTypes.object,
-		"router": React.PropTypes.object.isRequired
-	}
-
-	static defaultProps = {
-		"issue": null
+		"issue": PropTypes.instanceOf(IssueRecord),
+		"router": PropTypes.object.isRequired,
+		"dispatch": PropTypes.func.isRequired,
+		"formType": PropTypes.oneOf(["add", "edit"]).isRequired
 	}
 
 	state = Object.assign(getState(this.props.issue), {
@@ -78,15 +84,14 @@ class IssueForm extends React.Component {
 
 		if (dataValues.deadline) {
 			// Convert Moment.js object to plain JS date
-			dataValues.deadline = dataValues.deadline.toDate();
+			dataValues.deadline = moment(dataValues.deadline).toDate();
 		}
 
-		IssueUtils.saveIssue({"issue": dataValues}).then(
-			issue => this.props.router.push(`/issues/${issue.id}`)
-		).catch(
-			// eslint-disable-next-line no-console
-			err => console.error("Error saving issue: ", err)
-		);
+		dataValues.id = this.props.issue && this.props.issue.id;
+
+		const saveFunc = this.props.formType === "add" ? createIssue : editIssue;
+
+		this.props.dispatch(saveFunc(dataValues, {"redirectOnSuccess": true}));
 	}
 
 	render() {
@@ -184,4 +189,4 @@ class IssueForm extends React.Component {
 	}
 }
 
-export default withRouter(IssueForm);
+export default connect()(withRouter(IssueForm));

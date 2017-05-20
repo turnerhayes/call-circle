@@ -9,6 +9,7 @@ class AddIssue extends React.Component {
 			<div className="add-issue-container">
 				<h2>Create an Issue</h2>
 				<IssueForm
+					formType="add"
 				/>
 			</div>
 		);

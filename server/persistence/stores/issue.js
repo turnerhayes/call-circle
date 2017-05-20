@@ -241,9 +241,8 @@ class IssuesStore {
 		);
 	}
 
-	static searchIssues(searchArgs, options) {
+	static searchIssues(searchArgs, { currentUser, includeUsers, includeImages }) {
 		const where = {};
-		options = options || {};
 
 		const scopes = ["defaultScope", "not-deleted"];
 
@@ -251,17 +250,17 @@ class IssuesStore {
 
 		addCreatorInclude({ "includes": includes });
 
-		if (options.includeUsers) {
+		if (includeUsers) {
 			addUserInclude({ "includes": includes });
 		}
-		else if (options.currentUser) {
+		else if (currentUser) {
 			addCurrentUserInclude({
 				"includes": includes,
-				"currentUser": options.currentUser
+				"currentUser": currentUser
 			});
 		}
 
-		if (options.includeImages) {
+		if (includeImages) {
 			addImageInclude({ "includes": includes });
 		}
 

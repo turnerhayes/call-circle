@@ -1,6 +1,6 @@
 "use strict";
 
-const Sequelize         = require("sequelize");
+const Promise           = require("bluebird");
 const rfr               = require("rfr");
 const Models            = rfr("server/persistence/models");
 const NotFoundException = rfr("server/persistence/exceptions/not-found");
@@ -67,33 +67,16 @@ class UserStore {
 		);
 	}
 
-	static getIssueSubscriptions({ userID, includeDeleted, includeExpired }) {
+	static getIssueSubscriptions({ userID, includeDeleted }) {
 		const options = {
 			"attributes": ["issue_id"],
 			"where": { "user_id": userID },
+			"paranoid": !includeDeleted
 		};
 
-		if (!includeDeleted || !includeExpired) {
-			const scopes = [];
-
-			if (!includeExpired) {
-				scopes.push("inProgress");
-			}
-
-			if (!includeDeleted) {
-				scopes.push("not-deleted");
-			}
-			options.include = [
-				{
-					"model": scopes.length === 0 ?
-						Models.Issue :
-						Models.Issue.scope(...scopes),
-					"attributes": []
-				}
-			];
-		}
-
-		return Models.UserIssues.findAll(options);
+		return Promise.resolve(Models.UserIssues.findAll(options)).map(
+			issue => issue.issue_id
+		);
 	}
 }
 

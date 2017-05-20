@@ -1,11 +1,12 @@
-import $          from "jquery";
-import { omit }   from "lodash";
+import $           from "jquery";
+import { omit }    from "lodash";
 import {
 	List,
 	fromJS
 } from "immutable";
-import Promise    from "bluebird";
-import assert     from "assert";
+import Promise     from "bluebird";
+import assert      from "assert";
+import IssueRecord from "project/scripts/records/issue";
 
 function processResult(result) {
 	result.created_at = result.created_at ? new Date(result.created_at) : null;
@@ -13,7 +14,10 @@ function processResult(result) {
 	result.deleted_at = result.deleted_at ? new Date(result.deleted_at) : null;
 	result.deadline = result.deadline ? new Date(result.deadline) : null;
 
-	return fromJS(result);
+	result.createdByID = result.createdBy.id;
+	delete result.createdBy;
+
+	return new IssueRecord(fromJS(result));
 }
 
 function getErrorMessageFromXHR(jqXHR) {
@@ -67,7 +71,7 @@ export default class IssueUtils {
 	static subscribeToIssue({ issue }) {
 		return Promise.resolve(
 			$.ajax({
-				"url": `/api/issues/${issue.get("id")}/subscribe`,
+				"url": `/api/issues/${issue.id}/subscribe`,
 				"type": "post"
 			}).then(
 				() => issue
@@ -82,7 +86,7 @@ export default class IssueUtils {
 	static unsubscribeFromIssue({ issue }) {
 		return Promise.resolve(
 			$.ajax({
-				"url": `/api/issues/${issue.get("id")}/unsubscribe`,
+				"url": `/api/issues/${issue.id}/unsubscribe`,
 				"type": "post"
 			}).then(
 				() => issue
@@ -146,7 +150,7 @@ export default class IssueUtils {
 				"dataType": "json",
 				"data": searchOptions
 			}).then(
-				results => results.map(processResult)
+				results => List(results.map(processResult))
 			).catch(
 				jqXHR => {
 					throw new Error(getErrorMessageFromXHR(jqXHR));
@@ -183,11 +187,5 @@ export default class IssueUtils {
 				}
 			)
 		);
-	}
-
-	static CATEGORY_ICON_MAP = {
-		"SocialJustice": "gavel",
-		"CriminalJustice": "gavel",
-		"Environment": "leaf"
 	}
 }

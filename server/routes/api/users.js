@@ -36,12 +36,10 @@ router.route("/:userID/subscriptions")
 		(req, res, next) => {
 			const userID = Number(req.params.userID);
 			const includeDeleted = !!req.query.include_deleted;
-			const includeExpired = !!req.query.include_expired;
 
 			UsersStore.getIssueSubscriptions({
 				userID,
-				includeDeleted,
-				includeExpired
+				includeDeleted
 			}).then(
 				res.json.bind(res)
 			).catch(ex => next(ex));

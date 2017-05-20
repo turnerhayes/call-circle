@@ -4,18 +4,24 @@ import {
 	sortBy,
 	uniqueId,
 	intersection
-}                        from "lodash";
-import React             from "react";
-import SelectInput       from "react-select";
-import GeoSuggest        from "react-geosuggest";
-import Tether            from "react-tether";
-import STATES            from "project/shared-lib/states.json";
-import CongressDataUtils from "project/scripts/utils/congress-data";
-import GoogleMaps        from "project/scripts/utils/google-maps";
-import BrowserGeolocator from "project/scripts/utils/browser-geolocator";
-import                        "react-select/dist/react-select.css";
-import                        "project/styles/congress/district-input.less";
-import                        "project/styles/geosuggest.css";
+}                         from "lodash";
+import React              from "react";
+import { connect }        from "react-redux";
+import PropTypes          from "prop-types";
+import ImmutablePropTypes from "react-immutable-proptypes";
+import SelectInput        from "react-select";
+import GeoSuggest         from "react-geosuggest";
+import Tether             from "react-tether";
+import {
+	getAllUSDistricts
+}                         from "project/scripts/redux/actions";
+import STATES             from "project/shared-lib/states.json";
+import CongressDataUtils  from "project/scripts/utils/congress-data";
+import GoogleMaps         from "project/scripts/utils/google-maps";
+import BrowserGeolocator  from "project/scripts/utils/browser-geolocator";
+import                         "react-select/dist/react-select.css";
+import                         "project/styles/congress/district-input.less";
+import                         "project/styles/geosuggest.css";
 
 function getOrdinalSuffix(num) {
 	/* eslint-disable no-magic-numbers */
@@ -44,14 +50,16 @@ function getOrdinalSuffix(num) {
 	return "th";
 }
 
-export default class DistrictInput extends React.Component {
+class DistrictInput extends React.Component {
 	componentID = uniqueId("district-input-component")
 
 	static propTypes = {
-		"onStateChange": React.PropTypes.func.isRequired,
-		"onDistrictChange": React.PropTypes.func.isRequired,
-		"state": React.PropTypes.oneOf(Object.keys(STATES)),
-		"district": React.PropTypes.number
+		"onStateChange": PropTypes.func.isRequired,
+		"onDistrictChange": PropTypes.func.isRequired,
+		"districts": ImmutablePropTypes.map,
+		"state": PropTypes.oneOf(Object.keys(STATES)),
+		"district": PropTypes.number,
+		"dispatch": PropTypes.func.isRequired
 	}
 
 	state = {
@@ -85,43 +93,9 @@ export default class DistrictInput extends React.Component {
 			err => console.error("Unable to load Google Maps API:", err)
 		);
 
-		if (this.props.state) {
-			this.loadDistrictOptions(this.props.state);
+		if (!this.props.districts) {
+			this.props.dispatch(getAllUSDistricts());
 		}
-	}
-
-	componentWillReceiveProps(nextProps) {
-		if (nextProps.state && nextProps.state !== this.props.state) {
-			this.loadDistrictOptions(nextProps.state);
-		}
-	}
-
-	loadDistrictOptions = state => {
-		if (!state) {
-			return null;
-		}
-
-		this.setState({ "isLoadingDistricts": true });
-		return CongressDataUtils.getDistricts().then(
-			districts => {
-				districts = districts[state];
-
-				if (size(districts) === 1) {
-					this._changeDistrict(districts[0]);
-					return;
-				}
-
-				this.setState({
-					"isLoadingDistricts": false,
-					"districtOptions": districts && districts.sort((a, b) => a - b).map(
-						district => ({
-							"value": district,
-							"label": `${district}${getOrdinalSuffix(Number(district))} District`
-						})
-					)
-				});
-			}
-		);
 	}
 
 	_changeState = state => {
@@ -203,9 +177,6 @@ export default class DistrictInput extends React.Component {
 							// TODO: handle none found
 							return;
 						}
-
-						/// DEBUG
-						results = [results[0]];
 
 						if (results.length > 1) {
 							this.showCurrentPositionOptions(results);
@@ -308,7 +279,7 @@ export default class DistrictInput extends React.Component {
 				</div>
 				<div className={`form-group ${
 					!this.props.state ||
-					(this.state.districtOptions && size(this.state.districtOptions) < 2) ?
+					(this.props.districts && size(this.props.districts.get(this.props.state)) < 2) ?
 						"hidden" :
 						""
 				}`}>
@@ -323,7 +294,16 @@ export default class DistrictInput extends React.Component {
 						value={this.props.district}
 						onChange={selectedOption => this.onDistrictChange(selectedOption && selectedOption.value)}
 						isLoading={this.state.isLoadingDistricts}
-						options={this.state.districtOptions}
+						options={
+							this.props.state && this.props.districts ?
+								this.props.districts.get(this.props.state).map(
+									district => ({
+										"value": district,
+										"label": `${district}${getOrdinalSuffix(Number(district))} District`
+									})
+								).toArray() :
+								undefined
+						}
 					/>
 				</div>
 				{this.renderLookup()}
@@ -331,3 +311,14 @@ export default class DistrictInput extends React.Component {
 		);
 	}
 }
+
+export default connect(
+	state => {
+		const congressData = state.get("congress");
+		const districts = congressData.get("districts");
+
+		return {
+			districts
+		};
+	}
+)(DistrictInput);

@@ -1,74 +1,74 @@
 import {
 	isEmpty
-}                        from "lodash";
-import React             from "react";
-import UserUtils         from "project/scripts/utils/user";
-import DistrictInput     from "project/scripts/components/congress/DistrictInput";
+}                         from "lodash";
+import React              from "react";
+import PropTypes          from "prop-types";
+import { connect }        from "react-redux";
+import UserRecord         from "project/scripts/records/user";
+import {
+	getUser,
+	updateUserProfile
+}                         from "project/scripts/redux/actions";
+import DistrictInput      from "project/scripts/components/congress/DistrictInput";
 
-
-export default class UserProfile extends React.Component {
+class UserProfile extends React.Component {
 	static propTypes = {
-		"userID": React.PropTypes.string
+		"userID": PropTypes.string,
+		"user": PropTypes.instanceOf(UserRecord),
+		"currentUser": PropTypes.instanceOf(UserRecord),
+		"dispatch": PropTypes.func.isRequired
 	}
 
 	state = {
-		"user": null,
 		"userLoadError": null,
 		"userLocation": null
 	}
 
-	set user(user) {
-		this.setState({
-			user,
-			"userLocation": isEmpty(user.location) ?
-				null :
-				{
-					"state": user.location.state,
-					"district": user.location.district
-				}
-		});
+	componentWillMount() {
+		if (!this.props.user && this.props.userID !== this.props.currentUser.id) {
+			this.props.dispatch(
+				getUser({
+					"userID": this.props.userID 
+				})
+			);
+		}
+
+		if (this.props.user) {
+			this._setLocationFromUser(this.props.user);
+		}
 	}
 
-	componentWillMount() {
-		if (this.props.userID) {
-			UserUtils.getUser(this.props.userID).then(
-				user => this.user = user
-			).catch(userLoadError => this.setState({ userLoadError }));
+	componentWillReceiveProps(nextProps) {
+		if (nextProps.user) {
+			this._setLocationFromUser(nextProps.user);
 		}
-		else {
-			this.user = UserUtils.currentUser;
-		}
+	}
+
+	_setLocationFromUser = user => {
+		this.setState({
+			"userLocation": user.location.toJS()
+		});
 	}
 
 	saveProfile = () => {
 		const updateData = {
-			"userID": this.state.user.id
+			"userID": this.props.user.id
 		};
 
 		if (this.state.userLocation) {
 			updateData.location = this.state.userLocation;
 		}
 
-		UserUtils.updateProfile(updateData).then(
-			user => this.setState({
-				"user": user,
-				// Make a copy of the object, so that this component doesn't alter the user object
-				// directly
-				"userLocation": {
-					"state": user.location.state,
-					"district": user.location.district
-				}
-			})
-		);
+		this.props.dispatch(updateUserProfile(updateData));
 	}
 
 	isDirty = () => {
 		return !isEmpty(this.state.userLocation) &&
 		(
-			isEmpty(this.state.user.location) ||
+			isEmpty(this.props.user.location) ||
 			(
-				this.state.user.location.state !== this.state.userLocation.state ||
-				this.state.user.location.district !== this.state.userLocation.district
+				this.props.user.location.get("state") !== this.state.userLocation.state ||
+				this.props.user.location.get("district") !== this.state.userLocation.district
 			)
 		);
 	}
@@ -77,7 +77,7 @@ export default class UserProfile extends React.Component {
 		return (
 			<form
 				method="put"
-				action={`/api/user/${this.state.user.id}/location`}
+				action={`/api/user/${this.props.user.id}/location`}
 			>
 				<DistrictInput
 					state={this.state.userLocation && this.state.userLocation.state}
@@ -154,7 +154,7 @@ export default class UserProfile extends React.Component {
 			<div>
 				<header>
 					<h1>
-						{this.state.user.displayName}
+						{this.props.user.displayName}
 					</h1>
 				</header>
 				<section>
@@ -162,7 +162,7 @@ export default class UserProfile extends React.Component {
 						<h2>Location</h2>
 					</header>
 					{
-						this.state.user.id === UserUtils.currentUser.id ?
+						this.props.user.id === this.props.currentUser.id ?
 							this.renderLocationForm() :
 							this.renderLocationDisplay()
 					}
@@ -186,7 +186,7 @@ export default class UserProfile extends React.Component {
 			return;
 		}
 
-		if (this.state.user === null) {
+		if (!this.props.user) {
 			this.renderUserLoading();
 			return;
 		}
@@ -194,3 +194,24 @@ export default class UserProfile extends React.Component {
 		return this.renderUserProfile();
 	}
 }
+
+export default connect(
+	(state, ownProps) => {
+		const { userID } = ownProps;
+		const users = state.get("users");
+		const currentUser = users.currentUser;
+		let user;
+
+		if (!userID || userID === currentUser.id) {
+			user = currentUser;
+		}
+		else {
+			user = users.get(userID);
+		}
+
+		return {
+			currentUser,
+			user
+		};
+	}
+)(UserProfile);

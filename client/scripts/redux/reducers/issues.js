@@ -1,56 +1,58 @@
-import { List, Map, fromJS } from "immutable";
-
+import { Map, fromJS }         from "immutable";
+import IssuesStateRecord from "project/scripts/records/state/issues";
 import {
 	FETCH_ISSUES,
-	SUBSCRIPTION_CHANGE_REQUESTED,
-	SUBSCRIBED_TO_ISSUE,
-	UNSUBSCRIBED_FROM_ISSUE
-} from "project/scripts/redux/actions";
+	CREATE_ISSUE,
+	EDIT_ISSUE,
+	CHANGE_ISSUE_SEARCH_PARAMETERS,
+	SEARCH_ISSUES
+}                         from "project/scripts/redux/actions";
 
-export default function issuesReducer(state = Map(), action) {
+export default function issuesReducer(state = new IssuesStateRecord(), action) {
 	switch (action.type) {
 		case FETCH_ISSUES: {
 			if (action.error) {
 				return state.set("issueLoadError", fromJS(action.payload));
 			}
 
-			return state.set(
-				"items", (state.items || List()).mergeDeep(action.payload),
-			).delete("issueLoadError");
+			return state.updateIssues(action.payload).delete("issueLoadError");
 		}
 
-		case SUBSCRIPTION_CHANGE_REQUESTED: {
-			return state.set("isSubscribing", true);
-		}
-
-		case SUBSCRIBED_TO_ISSUE: {
-			// TODO: handle error
-			let newState = state.set("isSubscribing", false);
-
-			if (!action.error) {
-				const index = state.get("items").findIndex(
-					issue => issue.get("id") === action.payload.issue.get("id")
-				);
-				
-				newState = newState.setIn(["items", index, "userIsSubscribed"], true);
+		case CREATE_ISSUE: {
+			if (action.error) {
+				// TODO: handle error
+				return state;
 			}
 
-			return newState;
+			return state.setIn(["items", action.payload.id], action.payload);
 		}
 
-		case UNSUBSCRIBED_FROM_ISSUE: {
-			// TODO: handle error
-			let newState = state.set("isSubscribing", false);
-
-			if (!action.error) {
-				const index = state.get("items").findIndex(
-					issue => issue.get("id") === action.payload.issue.get("id")
-				);
-
-				newState = newState.setIn(["items", index, "userIsSubscribed"], false);
+		case EDIT_ISSUE: {
+			if (action.error) {
+				// TODO: handle error
+				return state;
 			}
 
-			return newState;
+			return state.setIn(["items", action.payload.id], action.payload);
+		}
+
+		case CHANGE_ISSUE_SEARCH_PARAMETERS: {
+			return state.mergeIn(
+				["search", "parameters"],
+				action.payload
+			);
+		}
+
+		case SEARCH_ISSUES: {
+			if (action.error) {
+				// TODO: handle error
+				return state;
+			}
+
+			return state.setIn(
+				["search", "results"],
+				action.payload.map(issue => issue.id).toSet()
+			).mergeIn(["items"], Map(action.payload.map(issue => [issue.id, issue])));
 		}
 
 		default:

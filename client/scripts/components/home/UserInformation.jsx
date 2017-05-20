@@ -1,9 +1,11 @@
 import React                from "react";
+import PropTypes            from "prop-types";
 import { Link, withRouter } from "react-router";
+import UserRecord           from "project/scripts/records/user";
 
 class UserInformation extends React.Component {
 	static propTypes = {
-		"user": React.PropTypes.object.isRequired
+		"user": PropTypes.instanceOf(UserRecord).isRequired
 	}
 
 	confirmLogout() {
@@ -19,12 +21,6 @@ class UserInformation extends React.Component {
 	render() {
 		return (
 			<div className="user-info-container">
-				<Link
-					to="/groups"
-					className="user-action-link groups position-west fa fa-users fa-3x"
-					aria-label="Groups"
-					title="Groups"
-				></Link>
 				<Link
 					to="/issues"
 					className="user-action-link issues position-east fa fa-calendar fa-3x"

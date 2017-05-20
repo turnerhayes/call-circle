@@ -1,5 +1,38 @@
 .issues-search-container {
+	padding: 1em;
+
+	[name="query"] {
+		width: 20em;
+	}
+
 	.search-results {
 		list-style: none;
+		padding-left: 0;
+		display: table;
+		border-collapse: collapse;
+	}
+
+	.result-header-row {
+		display: table-header-group;
+		border-bottom: 1px solid black;
+
+		.result-field {
+			font-weight: bold;
+			font-size: 1.7em;
+		}
+	}
+
+	.result-row {
+		display: table-row;
+		font-size: 1.3em;
+
+		&:nth-child(2n) {
+			background-color: lightgray;
+		}
+	}
+
+	.result-field {
+		display: table-cell;
+		padding: 0.3em 1em;
 	}
 }

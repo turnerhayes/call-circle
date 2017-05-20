@@ -4,13 +4,15 @@ import PropTypes          from "prop-types";
 import ImmutablePropTypes from "react-immutable-proptypes";
 import Dropzone           from "react-dropzone";
 import Config             from "project/shared-lib/config";
+import IssueImageRecord   from "project/scripts/records/issue-image";
+import IssueRecord        from "project/scripts/records/issue";
 import                         "project/styles/issues/image-upload.less";
 
 export default class ImageUpload extends React.Component {
 	static propTypes = {
-		"issue": PropTypes.object.isRequired,
+		"issue": PropTypes.instanceOf(IssueRecord).isRequired,
 		"userIssueImages": ImmutablePropTypes.listOf(
-			ImmutablePropTypes.map
+			PropTypes.instanceOf(IssueImageRecord)
 		),
 		"className": PropTypes.string,
 		"onDeleteImage": PropTypes.func,
@@ -42,6 +44,46 @@ export default class ImageUpload extends React.Component {
 
 	closeImagePopup = () => {
 		this.setState({ "expandedImage": null });
+	}
+
+	renderUploadedImages = () => {
+		return (
+			<ul
+				className="user-images"
+			>
+				{
+					this.props.userIssueImages.map(
+						image => (
+							<li
+								key={`user-image-${image.id}`}
+								className="user-image"
+							>
+								<img
+									onClick={() => this.setState({ "expandedImage": image.location })}
+									src={image.location}
+								/>
+								{
+									this.props.onDeleteImage && (
+										<div
+											className="delete-image-button fa-stack"
+											onClick={() => this.deleteImage(image)}
+											role="button"
+										>
+											<span
+												className="fa fa-circle fa-stack-2x"
+											></span>
+											<span
+												className="fa fa-trash-o fa-inverse fa-stack-1x"
+											></span>
+										</div>
+									)
+								}
+							</li>
+						)
+					)
+				}
+			</ul>
+		);
 	}
 
 	render() {
@@ -127,45 +169,8 @@ export default class ImageUpload extends React.Component {
 					}
 					</Dropzone>
 					{
-						isEmpty(this.props.userIssueImages) ?
-							"" :
-							(
-								<ul
-									className="user-images"
-								>
-									{
-										this.props.userIssueImages.map(
-											image => (
-												<li
-													key={`user-image-${image.get("id")}`}
-													className="user-image"
-												>
-													<img
-														onClick={() => this.setState({ "expandedImage": image.get("location") })}
-														src={image.get("location")}
-													/>
-													{
-														this.props.onDeleteImage && (
-															<div
-																className="delete-image-button fa-stack"
-																onClick={() => this.deleteImage(image)}
-																role="button"
-															>
-																<span
-																	className="fa fa-circle fa-stack-2x"
-																></span>
-																<span
-																	className="fa fa-trash-o fa-inverse fa-stack-1x"
-																></span>
-															</div>
-														)
-													}
-												</li>
-											)
-										)
-									}
-								</ul>
-							)
+						!isEmpty(this.props.userIssueImages) &&
+							this.renderUploadedImages()
 					}
 
 					<button

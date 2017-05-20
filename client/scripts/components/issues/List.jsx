@@ -1,11 +1,13 @@
 import React              from "react";
+import PropTypes          from "prop-types";
 import ImmutablePropTypes from "react-immutable-proptypes";
 import { Link }           from "react-router";
+import IssueRecord        from "project/scripts/records/issue";
 
 export default class IssuesList extends React.Component {
 	static propTypes = {
 		"issues": ImmutablePropTypes.listOf(
-			ImmutablePropTypes.map
+			PropTypes.instanceOf(IssueRecord)
 		)
 	}
 
@@ -16,11 +18,11 @@ export default class IssuesList extends React.Component {
 					{
 						this.props.issues.map(
 							issue => (
-								<li key={issue.get("id")}>
+								<li key={issue.id}>
 									<Link
-										to={`/issues/${issue.get("id")}`}
+										to={`/issues/${issue.id}`}
 									>
-										{issue.get("name")}
+										{issue.name}
 									</Link>
 								</li>
 							)
